@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends
 from sqlmodel import Field, SQLModel
 from datetime import datetime
 from sqlmodel import Session, create_engine
+import account
+import transaction
 
 app = FastAPI()
 
@@ -15,7 +17,9 @@ engine = create_engine(sqlite_url, connect_args=connect_args)
 def read_root():
     return {"message": "Bienvenue chez pybank!"}
 
-#*----------------------------------------------------------------
+
+#*--------- Function ----------#
+
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
@@ -24,7 +28,9 @@ def get_session():
     with Session(engine) as session:
         yield session
 
-# ----------------------------------------------------------------
+
+#*--------- Class ----------#
+
 
 class Account(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -38,7 +44,9 @@ class Transaction(SQLModel, table=True):
     amount: float = Field(index=True)
     created_at: str = Field(default="1911/02/03", index=True) # VOIR SI CA MARCHE
 
-# ----------------------------------------------------------------
+
+#*--------- App ----------#
+
 
 @app.on_event("startup")
 def on_startup():
@@ -51,3 +59,11 @@ def create_account(body: Account, session = Depends(get_session)) -> Account:
     session.commit()
     session.refresh(account)
     return account
+
+@app.post("/transactions/")
+def create_transaction(body: Transaction, session = Depends(get_session)) -> Transaction:
+    transaction = Transaction(sender=body.sender, receiver=body.receiver, amount=body.amount)
+    session.add(transaction)
+    session.commit()
+    session.refresh(transaction)
+    return transaction
