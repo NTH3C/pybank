@@ -1,69 +1,23 @@
 from fastapi import FastAPI, Depends
-from sqlmodel import Field, SQLModel
+from sqlmodel import Session, create_engine, Field, SQLModel
+
 from datetime import datetime
-from sqlmodel import Session, create_engine
+
+import database
 import Class.account as account
 import Class.transaction as transaction
+import Class.user as user
 
 app = FastAPI()
+app.include_router(user.router)
+app.include_router(account.router)
+app.include_router(transaction.router)
 
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
 
 @app.get("/")
 def read_root():
     return {"message": "Bienvenue chez pybank!"}
 
-
-#*--------- Function ----------#
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-    with Session(engine) as session:
-        yield session
+database.create_db_and_tables()
 
 
-#*--------- Class ----------#
-
-
-class Account(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    balance: float = Field(index=True)
-    user_id: int = Field(index=True)
-
-class Transaction(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    sender: int = Field(index=True)
-    receiver: int = Field(index=True)
-    amount: float = Field(index=True)
-    created_at: str = Field(default="1911/02/03", index=True) # VOIR SI CA MARCHE
-
-
-#*--------- App ----------#
-
-
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
-
-@app.post("/accounts/")
-def create_account(body: Account, session = Depends(get_session)) -> Account:
-    account = Account(balance=body.balance, user_id=body.user_id)
-    session.add(account)
-    session.commit()
-    session.refresh(account)
-    return account
-
-@app.post("/transactions/")
-def create_transaction(body: Transaction, session = Depends(get_session)) -> Transaction:
-    transaction = Transaction(sender=body.sender, receiver=body.receiver, amount=body.amount)
-    session.add(transaction)
-    session.commit()
-    session.refresh(transaction)
-    return transaction
