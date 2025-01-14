@@ -9,8 +9,6 @@ router = APIRouter(tags=["Accounts"])
 
 
 
-
-
 #*--------- Class ----------#
 
 class Account(SQLModel, BaseModel, table=True):
@@ -19,13 +17,13 @@ class Account(SQLModel, BaseModel, table=True):
     name: str = Field(index=True, nullable=False )
     user_id: int = Field(index=True)
 
-class CreateAcount(BaseModel):
+class CreateAccount(BaseModel):
     name: str
 
 #*--------- App post ----------#
 
 @router.post("/accounts/")
-def create_account(body: CreateAcount, user_info=Depends(user.get_user), session=Depends(database.get_session)) -> Account:
+def create_account(body: CreateAccount, user_info=Depends(user.get_user), session=Depends(database.get_session)) -> Account:
     if user_info:
         account = Account(balance=0, name=body.name, user_id=user_info["id"])  # Access id as a dictionary key
         session.add(account)
@@ -37,4 +35,8 @@ def create_account(body: CreateAcount, user_info=Depends(user.get_user), session
 
 #*--------- App Get ----------#
 
+@router.post("/my_account/{account_name}")
+def my_account( body: CreateAccount, user_info=Depends(user.get_user)):
+    Account = Depends(CreateAccount.name).where (name = account_name).where(Account.user_id == user_info["id"])
+    return Account
 
