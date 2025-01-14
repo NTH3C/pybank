@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends
 from sqlmodel import Field, SQLModel
 from datetime import datetime
 from sqlmodel import Session, create_engine
-import account
-import transaction
+import Class.account as account
+import Class.transaction as transaction
 
 app = FastAPI()
 
