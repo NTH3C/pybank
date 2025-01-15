@@ -1,6 +1,9 @@
 import database
 import Class.user as user
 from Class.account import Account  # Import the Account class
+
+import logging
+
 from pydantic import BaseModel
 from fastapi import FastAPI, Depends, APIRouter, HTTPException
 from sqlmodel import Session, select, SQLModel, Field
@@ -72,4 +75,48 @@ def create_transaction(body: Transaction, session=Depends(database.get_session),
         "receiver_account": transaction.receiver,
         "sender_new_balance": sender_account.balance,
         "receiver_new_balance": receiver_account.balance,
+    }
+
+@router.post("/my_transactions/")
+def my_transaction(body: Account, session=Depends(database.get_session)):
+    # Ensure the body contains a valid account ID
+    if not body.id:
+        raise HTTPException(status_code=400, detail="Account ID is required")
+
+    # Fetch transactions where the account is the sender
+    sender_statement = (
+        select(Transaction)
+        .where(Transaction.sender == body.id)
+        .order_by(Transaction.created_at.desc())
+    )
+    sender_transactions = session.exec(sender_statement).all()
+
+    # Fetch transactions where the account is the receiver
+    receiver_statement = (
+        select(Transaction)
+        .where(Transaction.receiver == body.id)
+        .order_by(Transaction.created_at.desc())
+    )
+    receiver_transactions = session.exec(receiver_statement).all()
+
+    # Return the transactions organized in two separate lists
+    return {
+        "sent_transactions": [
+            {
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "amount": transaction.amount,
+                "created_at": transaction.created_at,
+            }
+            for transaction in sender_transactions
+        ],
+        "received_transactions": [
+            {
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "amount": transaction.amount,
+                "created_at": transaction.created_at,
+            }
+            for transaction in receiver_transactions
+        ],
     }
