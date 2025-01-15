@@ -2,7 +2,7 @@ import database
 import Class.user as user
 
 from fastapi import FastAPI, Depends, APIRouter, HTTPException
-from sqlmodel import Session, create_engine, Field, SQLModel
+from sqlmodel import Session, create_engine, Field, SQLModel, select
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -10,8 +10,8 @@ from datetime import datetime
 router = APIRouter(tags=["Accounts"])
 
 
-
 #*--------- Class ----------#
+
 
 class Account(SQLModel, BaseModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -32,7 +32,9 @@ class Deposit(BaseModel):
 class CreateAccount(BaseModel):
     name: str
 
+
 #*--------- App post ----------#
+
 
 @router.post("/accounts/")
 def create_account(body: CreateAccount, user_info=Depends(user.get_user), session=Depends(database.get_session)) -> Account:
@@ -66,10 +68,13 @@ def deposit_money(body: Deposit, user_info=Depends(user.get_user), session=Depen
         return {"message": "Deposit successfully completed.", "new_balance": account.balance}
     raise HTTPException(401, "Please login")
 
+
 #*--------- App Get ----------#
 
-@router.post("/my_account/{account_name}")
-def my_account( body: CreateAccount, user_info=Depends(user.get_user)):
-    Account = Depends(CreateAccount.name).where (name = account_name).where(Account.user_id == user_info["id"])
-    return Account
+
+@router.post("/my_account/{account_id}")
+def my_account( account_id: int, user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    statement = select(Account).where(Account.id == account_id, Account.user_id == user_info["id"])  # if user email exists
+    account = session.exec(statement).first()  # fetch first result
+    return account
 
