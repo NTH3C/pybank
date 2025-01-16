@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from sqlmodel import Session, create_engine, Field, SQLModel
+import fastapi_utilities
 
 from datetime import datetime
 
@@ -17,6 +18,8 @@ app.include_router(transaction.router)
 @app.get("/")
 def read_root():
     return {"message": "Bienvenue chez pybank!"}
+
+
 
 database.create_db_and_tables()
 

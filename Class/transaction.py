@@ -7,10 +7,15 @@ import logging
 from pydantic import BaseModel
 from fastapi import FastAPI, Depends, APIRouter, HTTPException
 from sqlmodel import Session, select, SQLModel, Field
+from fastapi_utilities import repeat_every
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 router = APIRouter(tags=["Transactions"])
+
+
+
+    
 
 #*--------- Class ----------#
 
@@ -24,6 +29,20 @@ class Transaction(SQLModel, BaseModel, table=True):
     is_pending: bool = Field(index=True, default=True)
 
 #*--------- Function Post ----------#
+
+@router.on_event('startup')
+@repeat_every(seconds=1)
+async def verify_transaction(session=Depends(database.get_session)):
+    statement = select(Transaction).where(Transaction.is_pending == True)
+    transactions_to_send = session.exec(statement).all
+
+    for transaction_to_send in transactions_to_send:
+        if timedelta(seconds=20) + transaction_to_send.created_at <= datetime.now():
+            transaction_to_send.is_pending == False
+            session.add(transaction_to_send)
+            session.commit()
+            session.refresh()
+
 
 @router.post("/transactions/")
 def create_transaction(body: Transaction, session=Depends(database.get_session), user_info=Depends(user.get_user)):
@@ -272,14 +291,7 @@ def delete_transaction(body: Transaction, user_info=Depends(user.get_user), sess
                 except ValueError as e:
                     raise HTTPException(status_code=400, detail=f"Invalid datetime format: {e}")
 
-            # Calculate the difference
-            try:
-                difference = datetime.now() - created_at
-            except TypeError as e:
-                raise HTTPException(status_code=400, detail=f"Error calculating difference: {e}")
-
-
-            if difference.total_seconds() < 200:
+            if not Transaction.is_pending:
                 receiver_account_statement = (
                 select(Account)
                 .where(Account.id == transaction.receiver)
@@ -306,6 +318,6 @@ def delete_transaction(body: Transaction, user_info=Depends(user.get_user), sess
                 session.refresh(transaction_to_update)
 
                 return {"message": "la transaction a bien été supprimée la 6T"}
-            return  {"message": "Too late loser", "time difference" : difference.total_seconds()}
+            return  {"message": "Too late loser"}
         else :
             return {"message": "not your account"}
