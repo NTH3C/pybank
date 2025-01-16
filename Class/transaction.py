@@ -30,18 +30,23 @@ class Transaction(SQLModel, BaseModel, table=True):
 
 #*--------- Function Post ----------#
 
+
 @router.on_event('startup')
 @repeat_every(seconds=1)
-async def verify_transaction(session=Depends(database.get_session)):
-    statement = select(Transaction).where(Transaction.is_pending == True)
-    transactions_to_send = session.exec(statement).all
-
-    for transaction_to_send in transactions_to_send:
-        if timedelta(seconds=20) + transaction_to_send.created_at <= datetime.now():
-            transaction_to_send.is_pending == False
-            session.add(transaction_to_send)
-            session.commit()
-            session.refresh()
+async def verify_transaction():
+    with Session(database.engine) as session:
+        statement = select(Transaction).where(Transaction.is_pending == True)
+        transactions_to_send = session.exec(statement).all()  # Make sure to call .all()
+        
+        for transaction_to_send in transactions_to_send:
+            # Ensure transaction_to_send.created_at is a datetime object
+            
+            if transaction_to_send.created_at + timedelta(seconds=5) <= datetime.now():
+                transaction_to_send.is_pending = False  # Use assignment instead of comparison
+                session.add(transaction_to_send)
+                session.commit()
+                session.refresh(transaction_to_send)  # Refresh the specific object
+                
 
 
 @router.post("/transactions/")
@@ -291,7 +296,7 @@ def delete_transaction(body: Transaction, user_info=Depends(user.get_user), sess
                 except ValueError as e:
                     raise HTTPException(status_code=400, detail=f"Invalid datetime format: {e}")
 
-            if not Transaction.is_pending:
+            if Transaction.is_pending:
                 receiver_account_statement = (
                 select(Account)
                 .where(Account.id == transaction.receiver)
