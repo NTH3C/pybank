@@ -10,7 +10,6 @@ from datetime import datetime
 router = APIRouter(tags=["Accounts"])
 
 
-
 #*--------- Class ----------#
 
 
@@ -19,8 +18,9 @@ class Account(SQLModel, BaseModel, table=True):
     balance: float = Field(index=True)
     name: str = Field(index=True, nullable=False )
     user_id: int = Field(index=True)
-    is_main: bool = Field(index=True)
     created_at: datetime = Field(default=datetime.now())
+    is_main: bool = Field(index=True)
+    is_deleted: bool = Field(index=True)
 
 class DepositTransaction(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -39,13 +39,13 @@ class CreateAccount(BaseModel):
 #*--------- App post ----------#
 
 def create_account_for_user(user_id: int, balance: float = 100) -> Account:
-    account = Account(balance=balance, name="Main_account", user_id=user_id, is_main = True)
+    account = Account(balance=balance, name="Main_account", user_id=user_id, is_main = True, is_deleted= False)
     return account
 
 @router.post("/accounts/")
-def create_account(body: CreateAccount, user_info=Depends(user.get_user), session=Depends(database.get_session), is_main_acc = False) -> Account:
+def create_account(body: CreateAccount, user_info=Depends(user.get_user), session=Depends(database.get_session)) -> Account:
     if user_info:
-        account = Account(balance = 0, name=body.name, user_id=user_info["id"], is_main = is_main_acc )  # Access id as a dictionary key
+        account = Account(balance = 0, name=body.name, user_id=user_info["id"], is_main = False, is_deleted = False)  # Access id as a dictionary key
         session.add(account)
         session.commit()
         session.refresh(account)
@@ -56,7 +56,11 @@ def create_account(body: CreateAccount, user_info=Depends(user.get_user), sessio
 def my_account(account_id: int, user_info=Depends(user.get_user), session=Depends(database.get_session)):
     statement = select(Account).where(Account.id == account_id, Account.user_id == user_info["id"])  # if account exists and is linked to currently logged in email user
     account = session.exec(statement).first()  # fetch first result
-    return account
+
+    if not account.is_deleted : 
+        return {"account id" : account.id, "account id" : account.name}
+    else :
+        return {"message" : "un compte supprimé ne peut plus être consulté. crasseux."}
 
 
 @router.post("/my_accounts")
@@ -69,7 +73,7 @@ def my_accounts(user_info=Depends(user.get_user), session=Depends(database.get_s
     )
     accounts = session.exec(statement).all()  # Fetch all matching accounts
     
-    if accounts : 
+    if accounts :
         return {
             "accounts": [
                 {
@@ -78,7 +82,7 @@ def my_accounts(user_info=Depends(user.get_user), session=Depends(database.get_s
                     "created at": account.created_at,  # Return the account creation date
                     "balance": account.balance  # Return the account balance
                 }
-                for account in accounts
+                for account in accounts if not account.is_deleted
             ]
         }
     else :
@@ -107,6 +111,57 @@ def deposit_money(body: Deposit, user_info=Depends(user.get_user), session=Depen
         return {"message": "Deposit successfully completed.", "new_balance": account.balance}
     raise HTTPException(401, "Please login")
 
-#*--------- App Get ----------#
 
 
+@router.post("/delete_account/")
+def delete_account(body: Account, user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    # Fetch the account
+    statement = (
+        select(Account)
+        .where(Account.id == body.id)
+    )
+    account_to_update = session.exec(statement).first()  # Fetch the first matching account
+
+    if not account_to_update:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    # Verify if account belongs to user
+    if account_to_update.user_id == user_info["id"]:
+        if not account_to_update.is_main:
+
+            if account_to_update.balance > 0:
+                # Fetch the main account fully
+                statement = (
+                    select(Account)
+                    .where(Account.user_id == user_info["id"], Account.is_main == True)
+                )
+                main_account = session.exec(statement).first()  # Fetch the first matching account
+
+                if main_account:
+                    # Transfer the remaining balance to the main account
+                    from Class.transaction import Transaction
+                    transaction = Transaction(sender=body.id, receiver=main_account.id, amount=account_to_update.balance)
+                    session.add(transaction)
+                    session.commit()
+                    session.refresh(transaction)
+
+                    # Update main account balance
+                    main_account.balance += account_to_update.balance
+                    session.add(main_account)
+                    session.commit()
+                    session.refresh(main_account)
+                else:
+                    raise HTTPException(status_code=404, detail="Main account not found")
+
+            # Set account balance to 0 and mark as deleted
+            account_to_update.balance = 0
+            account_to_update.is_deleted = True
+            session.add(account_to_update)
+            session.commit()
+            session.refresh(account_to_update)
+
+            return {"message": "Account successfully deleted."}
+        else:
+            return {"message": "You cannot delete the main account."}
+    else:
+        return {"message": "You are not authorized to delete this account."}
