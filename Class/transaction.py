@@ -48,34 +48,32 @@ async def verify_transaction():
                 session.refresh(transaction_to_send)  # Refresh the specific object
                 
 
-
 @router.post("/transactions/")
 def create_transaction(body: Transaction, session=Depends(database.get_session), user_info=Depends(user.get_user)):
+    # Check if sender account exists
+    statement = select(Account).where(Account.id == body.sender)  # Use Account class here
+    sender_account = session.exec(statement).first()  # Fetch first result
+    # Check if sender account is currently connected user
+    if sender_account.user_id != user_info["id"]:
+        raise HTTPException(status_code=400, detail="Not your account DUH")
+    # Check if sender account exists
+    if not sender_account:
+        raise HTTPException(status_code=404, detail="Sender account does not exist")
+    # check if sender account is deleted
+    if sender_account.is_deleted :
+        raise HTTPException(status_code=404, detail="Sender account does not exist")
+    
+
     # Check if receiver account exists
     statement = select(Account).where(Account.id == body.receiver)  # Use Account class here
     receiver_account = session.exec(statement).first()  # Fetch first result
-
+    # check if receiver account exists
     if not receiver_account:
         raise HTTPException(status_code=404, detail="Receiver account does not exist")
-    
     # check if receiver account is deleted
     if receiver_account.is_deleted :
         raise HTTPException(status_code=404, detail="Receiver account does not exist")
 
-    # Check if sender account exists
-    statement = select(Account).where(Account.id == body.sender)  # Use Account class here
-    sender_account = session.exec(statement).first()  # Fetch first result
-
-    if not sender_account:
-        raise HTTPException(status_code=404, detail="Sender account does not exist")
-    
-    # check if sender account is deleted
-    if sender_account.is_deleted :
-        raise HTTPException(status_code=404, detail="Sender account does not exist")
-
-    # Check if sufficient balance
-    if sender_account.balance < body.amount:
-        raise HTTPException(status_code=400, detail="Insufficient balance")
 
     # Validate transaction details
     if body.receiver == body.sender:
@@ -83,33 +81,74 @@ def create_transaction(body: Transaction, session=Depends(database.get_session),
     if body.amount <= 0:
         raise HTTPException(status_code=400, detail="Transaction amount must be greater than zero")
     
-    if sender_account.user_id != user_info["id"]:
-        raise HTTPException(status_code=400, detail="Not your account DUH")
+    # Check if sufficient balance
+    if sender_account.balance < body.amount:
+        raise HTTPException(status_code=400, detail="Insufficient balance")
 
-    # Create and save the transaction
-    transaction = Transaction(
-        sender=body.sender,
-        receiver=body.receiver,
-        amount=body.amount,
-    )
-    session.add(transaction)
-    session.commit()
-    session.refresh(transaction)
+    # Check if the receiver's balance will exceed 50,000
+    if receiver_account.balance + body.amount > 50000:
+        difference = receiver_account.balance + body.amount - 50000
 
-    # Update sender and receiver balances
-    sender_account.balance -= body.amount
-    receiver_account.balance += body.amount
-    session.add(sender_account)
-    session.add(receiver_account)
-    session.commit()
+        # Fetch the receiver's main account
+        statement = select(Account).where(and_(Account.user_id == receiver_account.user_id, Account.is_main == True))
+        receiver_main_account = session.exec(statement).first()
 
-    return {
-        "message": "Transaction successfully completed.",
-        "sender_account": transaction.sender,
-        "receiver_account": transaction.receiver,
-        "sender_new_balance": sender_account.balance,
-        "receiver_new_balance": receiver_account.balance,
-    }
+        if not receiver_main_account:
+            raise HTTPException(status_code=404, detail="Receiver's main account not found")
+
+        # Create a transaction for the difference
+        transaction_diff = Transaction(
+            sender=body.sender,
+            receiver=receiver_main_account.id,
+            amount=difference
+        )
+        session.add(transaction_diff)
+        session.commit()
+        session.refresh(transaction_diff)
+
+        # Update balances
+        receiver_main_account.balance += difference
+        receiver_account.balance = 50000
+        sender_account.balance -= body.amount
+
+        session.add(receiver_main_account)
+        session.add(receiver_account)
+        session.add(sender_account)
+        session.commit()
+
+        return {
+            "message": "Transaction successfully completed.",
+            "sender_account_balance": sender_account.balance,
+            "receiver_account_balance": receiver_account.balance,
+            "receiver_main_account_balance": receiver_main_account.balance if receiver_account.balance == 50000 else None
+        }
+    else:
+        # Normal transaction
+        transaction = Transaction(
+            sender=body.sender,
+            receiver=body.receiver,
+            amount=body.amount
+        )
+        session.add(transaction)
+        session.commit()
+        session.refresh(transaction)
+
+        # Update balances
+        sender_account.balance -= body.amount
+        receiver_account.balance += body.amount
+
+        session.add(sender_account)
+        session.add(receiver_account)
+        session.commit()
+
+        return {
+            "message": "Transaction successfully completed.",
+            "sender_account_balance": sender_account.balance,
+            "receiver_account_balance": receiver_account.balance,
+        }
+
+
+
 
 @router.post("/my_transactions/")
 def my_transactions(body: Account, session=Depends(database.get_session)):
