@@ -1,3 +1,4 @@
+from time import sleep
 import database
 
 import jwt
@@ -6,7 +7,6 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session, create_engine, Field, SQLModel, select
 from pydantic import BaseModel
 from passlib.context import CryptContext
-
 
 import logging
 
@@ -75,12 +75,21 @@ def authenticate_user(email: str, password: str, session: Session):
 #*--------- App post ----------#
 
 @router.post("/users/")
-def create_user(body: User,  session: Session = Depends(database.get_session)) -> User:
+def create_user(body: User, session: Session = Depends(database.get_session)):
+    from Class.account import create_account_for_user 
+
     user = User(email=body.email, password=get_password_hash(body.password))
     session.add(user)
     session.commit()
     session.refresh(user)
-    return user
+    account = create_account_for_user(user.id)
+
+    session.add(account)
+    session.commit()
+    session.refresh(account)
+
+    return {"messsage" : "User and account created succesfully!"}
+
 
 @router.post("/login/")
 def login(body: UserData, session: Session = Depends(database.get_session)):

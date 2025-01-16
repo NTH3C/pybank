@@ -20,6 +20,7 @@ class Transaction(SQLModel, BaseModel, table=True):
     receiver: int = Field(index=True)  # receiver account id
     amount: float = Field(index=True)
     created_at: datetime = Field(default=datetime.now())  # transaction date
+    is_deleted: bool = Field(index=True, default=False)
 
 #*--------- Function Post ----------#
 
@@ -120,3 +121,85 @@ def my_transaction(body: Account, session=Depends(database.get_session)):
             for transaction in receiver_transactions
         ],
     }
+
+@router.post("/delete_transaction/")
+def delete_transaction(body: Transaction, user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    # Fetch the user accounts
+    user_account_statement = (
+        select(Account)
+        .where(Account.user_id == user_info["id"])
+    )
+    user_accounts = session.exec(user_account_statement).all()  # Convert to a list
+
+    # Fetch the transaction
+    statement = (
+        select(Transaction)
+        .where(Transaction.id == body.id)
+    )
+    transaction = session.exec(statement).first()  # Fetch the first matching transaction
+
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    # Return the accounts and transaction info for debugging
+    infos = {
+        "user_accounts": [{"id": account.id, "name": account.name} for account in user_accounts],
+        "transaction": {
+            "id": transaction.id,
+            "sender": transaction.sender,
+            "receiver": transaction.receiver,
+            "amount": transaction.amount,
+        },
+    }
+
+    # verify if transaction was made by user
+    for account in user_accounts :
+        if int(transaction.sender) == int(account.id) :
+            # Fetch created_at from the transaction
+            created_at = transaction.created_at
+
+            # Ensure created_at is a datetime object
+            if isinstance(created_at, str):
+                # Convert string to datetime
+                try:
+                    created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")  # Adjust format as needed
+                except ValueError as e:
+                    raise HTTPException(status_code=400, detail=f"Invalid datetime format: {e}")
+
+            # Calculate the difference
+            try:
+                difference = datetime.now() - created_at
+            except TypeError as e:
+                raise HTTPException(status_code=400, detail=f"Error calculating difference: {e}")
+
+
+            if difference.total_seconds() < 200:
+                receiver_account_statement = (
+                select(Account)
+                .where(Account.id == transaction.receiver)
+            )
+                receiver_account = session.exec(receiver_account_statement).first()
+
+                receiver_account.balance -= transaction.amount 
+
+                sender_account_statement = (
+                select(Account)
+                .where(Account.id == transaction.sender)
+            )
+                sender_account = session.exec(sender_account_statement).first()
+
+                sender_account.balance += transaction.amount 
+
+
+
+                transaction_to_update = session.exec(statement).first()
+                transaction_to_update.is_deleted = True # update value
+
+                session.add(transaction_to_update) # push to database
+                session.commit()
+                session.refresh(transaction_to_update)
+
+                return {"message": "la transaction a bien été supprimée la 6T"}
+            return  {"message": "Too late loser", "time difference" : difference.total_seconds()}
+        else :
+            return {"message": "not your account"}
