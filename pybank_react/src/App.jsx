@@ -1,13 +1,11 @@
-import { useState } from 'react'
+import { useState } from "react";
 
-import './App.css'
-import Register from './pages/register'
+import "./App.css";
+import Register from "./pages/register";
+import Transaction from "./pages/transaction";
 
 function App() {
-
-  return (
-    <Register/>
-  )
+	return <Transaction />;
 }
 
-export default App
+export default App;
