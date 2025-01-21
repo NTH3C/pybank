@@ -22,7 +22,7 @@ class Account(SQLModel, BaseModel, table=True):
     is_main: bool = Field(index=True)
     is_deleted: bool = Field(index=True)
 
-c lass DepositTransaction(SQLModel, table=True):
+class DepositTransaction(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     account_id: int = Field(index=True)
     amount: float = Field(index=True)

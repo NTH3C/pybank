@@ -1,107 +1,94 @@
-from time import sleep
-import database
-
-import jwt
 from fastapi import FastAPI, Depends, APIRouter, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlmodel import Session, create_engine, Field, SQLModel, select
-from pydantic import BaseModel
+from sqlmodel import Session, Field, SQLModel, select
+from pydantic import BaseModel, EmailStr
 from passlib.context import CryptContext
-
-import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
+import jwt
+import database
 
 router = APIRouter(tags=["Users"])
 
-# to get a string like this run:
-# openssl rand -hex 32
 SECRET_KEY = "cf9b7cad0e2b97bf20b1055e64bbe1bca861bfa9abd08538b63bd32931985a1f"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 BEARER_SCHEME = HTTPBearer()
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-#*--------- Class ----------#
+#*--------- Models ----------#
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    email: str = Field(index=True, unique=True) # AJOUTER UN MESSAGE POUR L'UTILISATEUR
+    email: EmailStr = Field(index=True, unique=True)
     password: str = Field(index=True)
 
 class UserData(BaseModel):
-    email: str # AJOUTER UN MESSAGE POUR L'UTILISATEUR
+    email: EmailStr
     password: str
 
 class TokenData(BaseModel):
-    email: str
+    email: EmailStr
     id: int
 
-#*--------- Authentication ----------#
+#*--------- Utility Functions ----------#
 
-'''
-def get_user(email: str, session: Session):
-    statement = select(User).where(User.email == email)  # if user email exists
-    result = session.exec(statement).first()  # fetch first result
-    return result
-'''
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
 
-def get_user(authorization: HTTPAuthorizationCredentials = Depends(BEARER_SCHEME)) :
-    return jwt.decode(authorization.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 
-def generate_token(user: TokenData) : 
-    return jwt.encode(user.model_dump(), SECRET_KEY, algorithm=ALGORITHM)
+def generate_token(user: TokenData) -> str:
+    return jwt.encode(user.dict(), SECRET_KEY, algorithm=ALGORITHM)
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password) # compare plain and hashed pwd
+def get_user(authorization: HTTPAuthorizationCredentials = Depends(BEARER_SCHEME)):
+    try:
+        return jwt.decode(authorization.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 def authenticate_user(email: str, password: str, session: Session):
-    statement = select(User).where(User.email == email)  # if user email exists
-    user = session.exec(statement).first()  # fetch first result
-    if not user:  # case user doesn't exist
-        return False
-    if not verify_password(password, user.password):  # case pwd not correct
-        return False
+    statement = select(User).where(User.email == email)
+    user = session.exec(statement).first()
+    if not user or not verify_password(password, user.password):
+        return None
     return user
 
-#*--------- App post ----------#
+#*--------- Routes ----------#
 
 @router.post("/users/")
-def create_user(body: User, session: Session = Depends(database.get_session)):
-    from Class.account import create_account_for_user 
+def create_user(body: UserData, session: Session = Depends(database.get_session)):
+    from Class.account import create_account_for_user
 
+    # Vérifier si l'utilisateur existe déjà
+    existing_user = session.exec(select(User).where(User.email == body.email)).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Créer un nouvel utilisateur
     user = User(email=body.email, password=get_password_hash(body.password))
     session.add(user)
     session.commit()
     session.refresh(user)
-    account = create_account_for_user(user.id)
 
+    # Créer un compte associé
+    account = create_account_for_user(user.id)
     session.add(account)
     session.commit()
     session.refresh(account)
 
-    return {"messsage" : "User and account created succesfully!"}
-
+    return {"message": "User and account created successfully"}
 
 @router.post("/login/")
 def login(body: UserData, session: Session = Depends(database.get_session)):
     user = authenticate_user(body.email, body.password, session)
-    email = user.email
-    id = user.id
-    token_data = TokenData(id= id,email= email)
     if not user:
-        raise HTTPException(401, "invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token_data = TokenData(id=user.id, email=user.email)
     return {"token": generate_token(token_data)}
 
-@router.post("/me/")
-def me(user = Depends(get_user)):
+@router.get("/me/")
+def me(user=Depends(get_user)):
     return user
-#*--------- App Get ----------#
