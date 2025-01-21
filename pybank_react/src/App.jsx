@@ -1,3 +1,5 @@
+
+import Transaction from "./pages/transaction";
 import { useState } from 'react'
 
 import ReactDOM from "react-dom/client";
@@ -19,13 +21,15 @@ export default function App() {
         <Route path="/myaccount" element={<MyAccount />} />
         <Route path="/register" element={<Register />}/>
         <Route path="/login" element={<Login />} />
+        <Route path="/transactions" element={<Transaction />} />
       </Routes>
     </BrowserRouter>
     
   )
 }
 
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
 
-              
+            

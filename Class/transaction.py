@@ -48,8 +48,11 @@ async def verify_transaction():
                 session.refresh(transaction_to_send)  # Refresh the specific object
                 
 
-@router.post("/transactions/")
+@router.post("/make-transaction/")
 def create_transaction(body: Transaction, session=Depends(database.get_session), user_info=Depends(user.get_user)):
+    """
+    Make a new transaction
+    """
     # Check if sender account exists
     statement = select(Account).where(Account.id == body.sender)  # Use Account class here
     sender_account = session.exec(statement).first()  # Fetch first result
@@ -150,16 +153,19 @@ def create_transaction(body: Transaction, session=Depends(database.get_session),
 
 
 
-@router.post("/my_transactions/")
-def my_transactions(body: Account, session=Depends(database.get_session)):
+@router.get("/{account_id}/transactions/")
+def my_transactions(account_id: int, session=Depends(database.get_session)):
+    '''
+    Get all transactions made or received through current account.
+    '''
     # Ensure the body contains a valid account ID
-    if not body.id:
+    if not account_id:
         raise HTTPException(status_code=400, detail="Account ID is required")
 
     # Fetch transactions where the account is the sender
     sender_statement = (
         select(Transaction)
-        .where(Transaction.sender == body.id)
+        .where(Transaction.sender == account_id)
         .order_by(Transaction.created_at.desc())
     )
     sender_transactions = session.exec(sender_statement).all()
@@ -167,7 +173,7 @@ def my_transactions(body: Account, session=Depends(database.get_session)):
     # Fetch transactions where the account is the receiver
     receiver_statement = (
         select(Transaction)
-        .where(Transaction.receiver == body.id)
+        .where(Transaction.receiver == account_id)
         .order_by(Transaction.created_at.desc())
     )
     receiver_transactions = session.exec(receiver_statement).all()
@@ -195,66 +201,13 @@ def my_transactions(body: Account, session=Depends(database.get_session)):
     }
 
 
-@router.post("/transactions/")
-def all_transactions(body: Transaction, session=Depends(database.get_session), user_info=Depends(user.get_user)):
-    # Check if receiver account exists
-    statement = select(Account).where(Account.id == body.receiver)  # Use Account class here
-    receiver_account = session.exec(statement).first()  # Fetch first result
-
-    if not receiver_account:
-        raise HTTPException(status_code=404, detail="Receiver account does not exist")
-
-    # Check if sender account exists
-    statement = select(Account).where(Account.id == body.sender)  # Use Account class here
-    sender_account = session.exec(statement).first()  # Fetch first result
-
-    if not sender_account:
-        raise HTTPException(status_code=404, detail="Sender account does not exist")
-
-    # Check if sufficient balance
-    if sender_account.balance < body.amount:
-        raise HTTPException(status_code=400, detail="Insufficient balance")
-
-    # Validate transaction details
-    if body.receiver == body.sender:
-        raise HTTPException(status_code=400, detail="Cannot send money to the same account")
-    if body.amount <= 0:
-        raise HTTPException(status_code=400, detail="Transaction amount must be greater than zero")
-    
-    if sender_account.user_id != user_info["id"]:
-        raise HTTPException(status_code=400, detail="Not your account DUH")
-
-    # Create and save the transaction
-    transaction = Transaction(
-        sender=body.sender,
-        receiver=body.receiver,
-        amount=body.amount,
-    )
-    session.add(transaction)
-    session.commit()
-    session.refresh(transaction)
-
-    # Update sender and receiver balances
-    sender_account.balance -= body.amount
-    receiver_account.balance += body.amount
-    session.add(sender_account)
-    session.add(receiver_account)
-    session.commit()
-
-    return {
-        "message": "Transaction successfully completed.",
-        "sender_account": transaction.sender,
-        "receiver_account": transaction.receiver,
-        "sender_new_balance": sender_account.balance,
-        "receiver_new_balance": receiver_account.balance,
-    }
-
-
 from sqlalchemy import or_, and_
 
-@router.post("/my_transactions/{id_transaction}")
+@router.post("/transactions/{id_transaction}")
 def my_transaction(body: Account, id_transaction: int, user_info=Depends(user.get_user), session=Depends(database.get_session)):
-
+    """
+    Get detail on 1 transaction
+    """
     # vérifier que le compte appartient bien à l'utilisateur connecté
     
     # Ensure the body contains a valid account ID
@@ -293,6 +246,9 @@ def my_transaction(body: Account, id_transaction: int, user_info=Depends(user.ge
 
 @router.post("/delete_transaction/")
 def delete_transaction(body: Transaction, user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    """
+    Delete a transaction
+    """
     # Fetch the user accounts
     user_account_statement = (
         select(Account)

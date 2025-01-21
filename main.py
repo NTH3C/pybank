@@ -35,5 +35,6 @@ app.include_router(transaction.router)
 def read_root():
     return {"message": "Bienvenue chez pybank!"}
 
+
 # Création des tables et base de données
 database.create_db_and_tables()
