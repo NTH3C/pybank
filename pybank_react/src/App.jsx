@@ -1,13 +1,23 @@
 import { useState } from 'react'
-
+import ReactDOM from "react-dom/client";
 import './App.css'
 import Register from './pages/register'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import MyAccount from './pages/myaccount'
 
-function App() {
 
+export default function App() {
   return (
-    <Register/>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Register />}/>
+        <Route path="/myaccount" element={<MyAccount />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+
+              
