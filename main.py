@@ -11,26 +11,30 @@ import Class.transaction as transaction
 import Class.user as user
 
 app = FastAPI()
-app.include_router(user.router)
-app.include_router(account.router)
-app.include_router(transaction.router)
 
-origins = [
-    "http://localhost:5173"
+
+origins = [        
+    "*",       
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,     #Users allowed to use API
+    allow_credentials=True,    
+    allow_methods=["*"],       #Allow all methods
+    allow_headers=["*"],       #Allow all headers
 )
+
+# Include route
+app.include_router(user.router)
+app.include_router(account.router)
+app.include_router(transaction.router)
+
 
 @app.get("/")
 def read_root():
     return {"message": "Bienvenue chez pybank!"}
 
+
+# Création des tables et base de données
 database.create_db_and_tables()
-
-

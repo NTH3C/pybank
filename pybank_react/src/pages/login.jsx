@@ -7,7 +7,7 @@ import axios from "axios";
 const Register = () => {
     return (
         <div className="centered">
-            <h1>Inscription</h1>,
+            <h1>Login</h1>,
             <Formik
                 initialValues={{
                     email: "",
@@ -15,13 +15,14 @@ const Register = () => {
                 }}
                 onSubmit={async (values) => {
                     try {
-                      const response = await axios.post('http://localhost:8000/users/',  values,
+                        const response = await axios.post('http://localhost:8000/login/',  values,
                         {
                             headers: {
                                 'Content-Type': 'application/json', 
                             },
                         });
-                      console.log('Success:', response.data);
+                        localStorage.setItem('Token',response.data)
+                        console.log('Success:', response.data);
                     } catch (error) {
                       console.error('Error:', error.response?.data || error.message);
                     }
