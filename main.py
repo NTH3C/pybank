@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, create_engine, Field, SQLModel
 import fastapi_utilities
-
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 
 import database
