@@ -1,3 +1,5 @@
+
+import Transaction from "./pages/transaction";
 import { useState } from 'react'
 import './App.css'
 import Register from './pages/register'
@@ -11,10 +13,11 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />}/>
         <Route path="/login" element={<Login />} />
+        <Route path="/transactions" element={<Transaction />} />
       </Routes>
     </BrowserRouter>
     
   )
 }
 
-export default App
+export default App;
