@@ -9,6 +9,7 @@ import MyAccount from './pages/myaccount'
 
 import Register from './pages/register'
 import Login from './pages/login'
+import Acceuil from "./pages/acceuil";
 
 
 
@@ -16,7 +17,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Register />}/>
+        <Route path="/" element={<Acceuil/>}/>
         <Route path="/myaccount" element={<MyAccount />} />
         <Route path="/register" element={<Register />}/>
         <Route path="/login" element={<Login />} />

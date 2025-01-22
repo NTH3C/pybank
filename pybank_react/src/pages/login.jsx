@@ -21,7 +21,7 @@ const Register = () => {
                                 'Content-Type': 'application/json', 
                             },
                         });
-                        localStorage.setItem('Token',response.data)
+                        localStorage.setItem('token',response.data.token)
                         console.log('Success:', response.data);
                     } catch (error) {
                       console.error('Error:', error.response?.data || error.message);
