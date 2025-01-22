@@ -20,6 +20,9 @@ function acceuil() {
             <button className='w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-white font-bold transition-opacity duration-300' onClick={() => navigate('/transactions')}>
                 transactions
             </button>
+            <button onClick={() => navigate('/create')}>
+                creer un compte
+            </button>
         </div>
   )
 }
