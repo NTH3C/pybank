@@ -9,7 +9,9 @@ import MyAccount from './pages/myaccount'
 
 import Register from './pages/register'
 import Login from './pages/login'
+import AccountTransactions from "./pages/accountTransactions";
 import Acceuil from "./pages/acceuil";
+
 
 
 
@@ -22,6 +24,8 @@ export default function App() {
         <Route path="/register" element={<Register />}/>
         <Route path="/login" element={<Login />} />
         <Route path="/transactions" element={<Transaction />} />
+        <Route path="/account/:accountId/transactions" element={<AccountTransactions />} />
+
       </Routes>
     </BrowserRouter>
     
