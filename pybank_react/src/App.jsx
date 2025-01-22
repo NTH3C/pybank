@@ -11,6 +11,7 @@ import Register from './pages/register'
 import Login from './pages/login'
 import AccountTransactions from "./pages/accountTransactions";
 import Acceuil from "./pages/acceuil";
+import CreateAccount from "./pages/createAccount";
 
 
 
@@ -25,6 +26,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/transactions" element={<Transaction />} />
         <Route path="/account/:accountId/transactions" element={<AccountTransactions />} />
+        <Route path="/create" element={< CreateAccount />} />
+
 
       </Routes>
     </BrowserRouter>

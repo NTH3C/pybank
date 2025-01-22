@@ -20,6 +20,9 @@ function acceuil() {
             <button onClick={() => navigate('/transactions')}>
                 transactions
             </button>
+            <button onClick={() => navigate('/create')}>
+                creer un compte
+            </button>
         </div>
   )
 }

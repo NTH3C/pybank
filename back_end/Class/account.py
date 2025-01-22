@@ -12,15 +12,16 @@ router = APIRouter(tags=["Accounts"])
 
 #*--------- Class ----------#
 
-
 class Account(SQLModel, BaseModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     balance: float = Field(index=True)
-    name: str = Field(index=True, nullable=False )
+    name: str = Field(index=True, nullable=False)
     user_id: int = Field(index=True)
+    type: str = Field(index=True, nullable=False) 
     created_at: datetime = Field(default=datetime.now())
     is_main: bool = Field(index=True)
     is_deleted: bool = Field(index=True)
+
 
 class DepositTransaction(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -34,6 +35,8 @@ class Deposit(BaseModel):
     
 class CreateAccount(BaseModel):
     name: str
+    type: str 
+
 
 
 #*--------- App post ----------#
@@ -42,15 +45,30 @@ def create_account_for_user(user_id: int, balance: float = 100) -> Account:
     account = Account(balance=balance, name="Main_account", user_id=user_id, is_main = True, is_deleted= False)
     return account
 
+
+
 @router.post("/accounts/")
-def create_account(body: CreateAccount, user_info=Depends(user.get_user), session=Depends(database.get_session)) -> Account:
+def create_account(
+    body: CreateAccount, user_info=Depends(user.get_user), session=Depends(database.get_session)
+) -> Account:
     if user_info:
-        account = Account(balance = 0, name=body.name, user_id=user_info["id"], is_main = False, is_deleted = False)  # Access id as a dictionary key
+        if body.type not in ["Epargne", "Courant"]:
+            raise HTTPException(400, "Type de compte invalide. Choisissez Épargne ou Courant.")
+        
+        account = Account(
+            balance=0,
+            name=body.name,
+            user_id=user_info["id"],
+            type=body.type,  
+            is_main=False,
+            is_deleted=False,
+        )
         session.add(account)
         session.commit()
         session.refresh(account)
         return account
-    raise HTTPException(401, "Please login")
+    raise HTTPException(401, "Veuillez vous connecter.")
+
 
 @router.post("/my_account/{account_id}")
 def my_account(account_id: int, user_info=Depends(user.get_user), session=Depends(database.get_session)):
