@@ -9,7 +9,7 @@ const MyAccount = () => {
 
   async function fetchAccounts() {
     const apiKey = import.meta.env.VITE_URL_BACKEND;
-    const token = localStorage.getItem("Token");
+    const token = localStorage.getItem("token");
     if (!token) {
       setError("Vous n'êtes pas connecté.");
       return;
