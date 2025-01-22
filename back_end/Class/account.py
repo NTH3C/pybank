@@ -42,7 +42,7 @@ class CreateAccount(BaseModel):
 #*--------- App post ----------#
 
 def create_account_for_user(user_id: int, balance: float = 100) -> Account:
-    account = Account(balance=balance, name="Main_account", user_id=user_id, is_main = True, is_deleted= False)
+    account = Account(balance=balance, name="Main_account", user_id=user_id, is_main = True, is_deleted= False, type= "Courant")
     return account
 
 
