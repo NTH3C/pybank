@@ -10,7 +10,7 @@ const MakeTransaction = () => {
   const [toastVisible, setToastVisible] = useState(false);
   const [currentTransaction, setCurrentTransaction] = useState(null);
   const token = localStorage.getItem("token");
-  const apiKey = import.meta.env.VITE_URL_BACKEND; // Endpoint de suppression
+  const apiKey = import.meta.env.VITE_URL_BACKEND; 
 
   // Fetch all beneficiaries
   const fetchAllBeneficiaires = async () => {
@@ -56,18 +56,17 @@ const MakeTransaction = () => {
       );
   
       if (!response.data.id) {
-        throw new Error("Transaction response does not contain an ID."); // Vérification explicite
+        throw new Error("Transaction response does not contain an ID."); 
       }
   
-      setCurrentTransaction(response.data); // Sauvegarder les détails de la transaction, y compris l'ID
-      setToastVisible(true); // Afficher le toast
+      setCurrentTransaction(response.data); 
+      setToastVisible(true); 
   
       console.log("Transaction Success:", response.data);
   
-      // Automatiquement confirmer après 5 secondes
       setTimeout(() => {
         if (toastVisible) {
-          confirmTransaction(); // Confirmer seulement si le toast est visible
+          confirmTransaction(); 
         }
       }, 5000);
     } catch (error) {
@@ -94,7 +93,7 @@ const MakeTransaction = () => {
     try {
       const cancelResponse = await axios.post(
         `${apiKey}/delete_transaction/`,
-        { id: currentTransaction.id }, // Assurez-vous d'envoyer uniquement l'ID
+        { id: currentTransaction.id }, 
         {
           headers: {
             "Content-Type": "application/json",
@@ -103,8 +102,8 @@ const MakeTransaction = () => {
         }
       );
       console.log("Transaction undone:", cancelResponse.data);
-      setToastVisible(false); // Cacher le toast
-      setCurrentTransaction(null); // Réinitialiser la transaction courante
+      setToastVisible(false);
+      setCurrentTransaction(null); 
     } catch (error) {
       console.error("Undo Error:", error.response?.data || error.message);
     }
