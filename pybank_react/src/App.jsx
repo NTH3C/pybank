@@ -30,6 +30,7 @@ export default function App() {
           <Route path="/transactions" element={<Transaction />} />
           <Route path="/account/:accountId/transactions" element={<AccountTransactions />} />
           <Route path="/maketransactions" element={<MakeTransaction />} />
+          <Route path="/createaccount" element={<CreateAccount />} />
         </Route>
       </Routes>
     </BrowserRouter>

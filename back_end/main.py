@@ -9,6 +9,7 @@ import database
 import Class.account as account
 import Class.transaction as transaction
 import Class.user as user
+import Class.beneficiaire as beneficiaire
 
 app = FastAPI()
 
@@ -29,6 +30,7 @@ app.add_middleware(
 app.include_router(user.router)
 app.include_router(account.router)
 app.include_router(transaction.router)
+app.include_router(beneficiaire.router)
 
 
 @app.get("/")
