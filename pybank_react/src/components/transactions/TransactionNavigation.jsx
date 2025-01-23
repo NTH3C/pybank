@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import SearchBar from "./SearchBar"; // Import your SearchBar component
+import PdfDropdown from "./PdfDropdown";
 
 const TransactionNavigation = ({ selectedAccount }) => {
   const [activeTab, setActiveTab] = useState("transactions");
@@ -7,6 +8,8 @@ const TransactionNavigation = ({ selectedAccount }) => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
   const [loading, setLoading] = useState(true); // State for loading
+
+  // const [pdfContent, setPdfContent] = useState([]); // State for loading
 
   async function fetchAllTransactions(query = "") {
     const apiKey = import.meta.env.VITE_URL_BACKEND;
@@ -200,6 +203,9 @@ const TransactionNavigation = ({ selectedAccount }) => {
           </>
         )}
       </div>
+
+      <PdfDropdown />
+
     </div>
   );
 };
