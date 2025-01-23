@@ -11,6 +11,7 @@ import Transaction from "./pages/transaction";
 import AccountTransactions from "./pages/accountTransactions";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MakeTransaction from "./pages/makeTransaction";
+import AddBeneficiaire from "./pages/addBeneficiaire";
 
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/account/:accountId/transactions" element={<AccountTransactions />} />
           <Route path="/maketransactions" element={<MakeTransaction />} />
           <Route path="/createaccount" element={<CreateAccount />} />
+          <Route path="/addbeneficiaire" element={<AddBeneficiaire />} />
         </Route>
       </Routes>
     </BrowserRouter>
