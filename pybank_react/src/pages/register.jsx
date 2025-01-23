@@ -1,58 +1,86 @@
 import React from "react";
-import { Formik, Form } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import axios from "axios";
-
-
+import { useNavigate } from "react-router-dom"; // Utilisation de useNavigate pour rediriger après l'inscription
 
 const Register = () => {
-    return (
-        <div className="centered">
-            <h1>Inscription</h1>,
-            <Formik
-                initialValues={{
-                    email: "",
-                    password: "",
-                }}
-                onSubmit={async (values) => {
-                    try {
-                      const response = await axios.post('http://localhost:8000/users/',  values,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json', 
-                            },
-                        });
-                      console.log('Success:', response.data);
-                    } catch (error) {
-                      console.error('Error:', error.response?.data || error.message);
-                    }
-                  }}
-            >
-                {(formik) => (
-                    <Form>
-                        <label htmlFor="email">Email Address</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            onChange={formik.handleChange}
-                            value={formik.values.email}
-                        />
-                        
-                        <label htmlFor="password">Password</label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            onChange={formik.handleChange}
-                            value={formik.values.password}
-                        />
+  const navigate = useNavigate(); // Hook de redirection après inscription réussie
 
-                        <button type="submit">Submit</button>
-                    </Form>
-                )}
-            </Formik>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
+      <div className="max-w-sm mx-auto bg-opacity-90 backdrop-blur-lg rounded-xl p-6 shadow-xl">
+        <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
+          Inscription
+        </h1>
+
+        <Formik
+          initialValues={{
+            email: "",
+            password: "",
+          }}
+          onSubmit={async (values) => {
+            try {
+              const response = await axios.post("http://localhost:8000/users/", values, {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+              console.log("Inscription réussie:", response.data);
+              // Rediriger vers la page de connexion après une inscription réussie
+              navigate("/login");
+            } catch (error) {
+              console.error("Erreur lors de l'inscription:", error.response?.data || error.message);
+            }
+          }}
+        >
+          {(formik) => (
+            <Form className="space-y-6">
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-lg font-medium">Adresse Email</label>
+                <Field
+                  id="email"
+                  name="email"
+                  type="email"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-lg font-medium">Mot de passe</label>
+                <Field
+                  id="password"
+                  name="password"
+                  type="password"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full py-3 px-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
+              >
+                S'inscrire
+              </button>
+            </Form>
+          )}
+        </Formik>
+
+        <div className="mt-4 text-center text-sm text-gray-400">
+          <p>
+            Déjà un compte ?{" "}
+            <a href="/login" className="text-blue-400 hover:underline">
+              Se connecter
+            </a>
+          </p>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default Register;
