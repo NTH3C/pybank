@@ -31,7 +31,7 @@ export default function App() {
           <Route path="/my-accounts/" element={<MyAccounts />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/account/:accountId/transactions" element={<Transactions />} /> {/* Updated route */}
-
+          <Route path="/myaccount" element={<MyAccounts />} />
           <Route path="/maketransactions" element={<MakeTransaction />} />
           <Route path="/createaccount" element={<CreateAccount />} />
           <Route path="/addbeneficiaire" element={<AddBeneficiaire />} />

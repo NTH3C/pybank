@@ -267,6 +267,65 @@ def my_transaction(body: Account, id_transaction: int, user_info=Depends(user.ge
         "created_at": transaction.created_at,
     }
 
+@router.get("/balance-over-time/")
+def balance_over_time(user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    """
+    Returns the user's balance evolution over time (by month).
+    """
+    if not user_info:
+        raise HTTPException(status_code=401, detail="Please login")
+
+    # Fetch all account IDs for the user
+    statement = (
+        select(Account.id)
+        .where(Account.user_id == user_info["id"])
+    )
+    account_ids = session.exec(statement).all()  # List of account IDs
+
+    if not account_ids:
+        raise HTTPException(status_code=404, detail="No accounts found for the user.")
+
+    # Flatten the list of account IDs
+    account_ids = [account_id for account_id in account_ids]
+
+    # Fetch all transactions related to the user's accounts
+    statement = (
+        select(Transaction)
+        .where(
+            or_(
+                Transaction.sender.in_(account_ids),
+                Transaction.receiver.in_(account_ids)
+            )
+        )
+    )
+    transactions = session.exec(statement).all()
+
+    # Aggregate balance over time (by month)
+    balances = []
+    for transaction in transactions:
+        month = transaction.created_at.strftime('%Y-%m')  # Get the year-month as a string (e.g., '2025-01')
+        balance_change = transaction.amount if transaction.receiver in account_ids else -transaction.amount
+        balances.append({
+            "month": month,
+            "balance_change": balance_change
+        })
+
+    # Aggregate by month and calculate the balance
+    monthly_balance = {}
+    for entry in balances:
+        month = entry["month"]
+        if month not in monthly_balance:
+            monthly_balance[month] = 0
+        monthly_balance[month] += entry["balance_change"]
+
+    # Prepare data for chart
+    sorted_months = sorted(monthly_balance.keys())  # Sort by month
+    balance_data = [monthly_balance[month] for month in sorted_months]
+
+    return {
+        "months": sorted_months,
+        "balance": balance_data
+    }
 
 
 @router.post("/delete_transaction/")
