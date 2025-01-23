@@ -41,7 +41,7 @@ async def verify_transaction():
         for transaction_to_send in transactions_to_send:
             # Ensure transaction_to_send.created_at is a datetime object
             
-            if transaction_to_send.created_at + timedelta(seconds=5) >= datetime.now():
+            if transaction_to_send.created_at + timedelta(seconds=30) >= datetime.now():
                 transaction_to_send.is_pending = False  # Use assignment instead of comparison
                 session.add(transaction_to_send)
                 session.commit()
@@ -292,7 +292,7 @@ def delete_transaction(body: Transaction, user_info=Depends(user.get_user), sess
                 except ValueError as e:
                     raise HTTPException(status_code=400, detail=f"Invalid datetime format: {e}")
 
-            if Transaction.is_pending:
+            if Transaction.is_pending == True:
                 receiver_account_statement = (
                 select(Account)
                 .where(Account.id == transaction.receiver)

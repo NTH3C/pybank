@@ -29,6 +29,10 @@ class TokenData(BaseModel):
     email: EmailStr
     id: int
 
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str
+
 #*--------- Utility Functions ----------#
 
 def get_password_hash(password: str) -> str:
@@ -92,3 +96,32 @@ def login(body: UserData, session: Session = Depends(database.get_session)):
 @router.get("/me/")
 def me(user=Depends(get_user)):
     return user
+
+@router.put("/change_password/")
+def change_password(
+    body: PasswordChange, 
+    session: Session = Depends(database.get_session), 
+    user_info=Depends(get_user)
+):
+    # Retrieve the hashed password for the user
+    statement = select(User.password).where(User.id == user_info["id"])
+    hashed_password = session.exec(statement).first()
+
+    if not hashed_password:
+        return {"error": "User not found"}
+
+    # Verify the old password
+    if not pwd_context.verify(body.old_password, hashed_password):
+        return {"error": "Old password is incorrect"}
+
+    # Hash the new password and update it
+    hashed_new_password = pwd_context.hash(body.new_password)
+    user = session.get(User, user_info["id"])
+    if user:
+        user.password = hashed_new_password
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return {"message": "Password has been changed successfully"}
+    else:
+        return {"error": "User not found"}

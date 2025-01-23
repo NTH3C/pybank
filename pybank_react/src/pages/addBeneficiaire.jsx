@@ -4,21 +4,23 @@ import axios from "axios";
 
 
 
-const Login = () => {
+const AddBeneficiaire = () => {
+    const token = localStorage.getItem("token");
     return (
         <div className="centered">
             <h1>Login</h1>,
             <Formik
                 initialValues={{
-                    email: "",
-                    password: "",
+                    name: "",
+                    account_id: 0,
                 }}
                 onSubmit={async (values) => {
                     try {
-                        const response = await axios.post('http://localhost:8000/login/',  values,
+                        const response = await axios.post('http://localhost:8000/add_beneficiaire',  values,
                         {
                             headers: {
                                 'Content-Type': 'application/json', 
+                                Authorization: `Bearer ${token}`,
                             },
                         });
                         localStorage.setItem('token',response.data.token)
@@ -30,20 +32,20 @@ const Login = () => {
             >
                 {(formik) => (
                     <Form>
-                        <label htmlFor="email">Email Address</label>
+                        <label htmlFor="name">Name of the beneficiaire</label>
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
+                            id="name"
+                            name="name"
+                            type="text"
                             onChange={formik.handleChange}
                             value={formik.values.email}
                         />
                         
-                        <label htmlFor="password">Password</label>
+                        <label htmlFor="account_id">Account id</label>
                         <input
-                            id="password"
-                            name="password"
-                            type="password"
+                            id="account_id"
+                            name="account_id"
+                            type="number"
                             onChange={formik.handleChange}
                             value={formik.values.password}
                         />
@@ -56,4 +58,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default AddBeneficiaire;
