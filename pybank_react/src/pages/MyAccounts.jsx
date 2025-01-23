@@ -1,7 +1,11 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchAccounts } from "../api/accounts/fetchAccounts";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAccounts } from "../api/accounts/fetchAccounts";
 
+const MyAccount = () => {
 const MyAccount = () => {
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState("");
@@ -22,7 +26,23 @@ const MyAccount = () => {
 
   async function handleDeleteAccount(accountId, accountName) {
     const apiKey = import.meta.env.VITE_URL_BACKEND; // Endpoint de suppression
+  useEffect(() => {
+    async function loadAccounts() {
+      try {
+        const accountsData = await fetchAccounts();
+        setAccounts(accountsData);
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+
+    loadAccounts();
+  }, []);
+
+  async function handleDeleteAccount(accountId, accountName) {
+    const apiKey = import.meta.env.VITE_URL_BACKEND; // Endpoint de suppression
     const token = localStorage.getItem("token");
+
 
     if (!token) {
       setError("Vous n'êtes pas connecté.");
@@ -34,7 +54,13 @@ const MyAccount = () => {
       return;
     }
 
+    if (accountName == "Main_account") {
+      setError("Vous ne pouvez pas supprimer le compte principal.");
+      return;
+    }
+
     try {
+      const response = await fetch( (`${apiKey}/delete_account/`), {
       const response = await fetch( (`${apiKey}/delete_account/`), {
         method: "POST",
         headers: {
@@ -42,14 +68,21 @@ const MyAccount = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ id: accountId }), // Envoi de l'ID du compte
+        body: JSON.stringify({ id: accountId }), // Envoi de l'ID du compte
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
           errorData.detail || "Erreur lors de la suppression du compte"
+          errorData.detail || "Erreur lors de la suppression du compte"
         );
       }
+
+      // Mise à jour de la liste des comptes après suppression
+      setAccounts((prevAccounts) =>
+        prevAccounts.filter((account) => account.id !== accountId)
+      );
 
       // Mise à jour de la liste des comptes après suppression
       setAccounts((prevAccounts) =>
@@ -69,6 +102,7 @@ const MyAccount = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-extrabold text-center mb-8 tracking-wider bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
+          Mes Comptes
           Mes Comptes
         </h1>
         {error && (
@@ -104,9 +138,18 @@ const MyAccount = () => {
                   onClick={() =>
                     navigate(`/account/${account.id}/transactions`)
                   }
+                  onClick={() =>
+                    navigate(`/account/${account.id}/transactions`)
+                  }
                   className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-white font-bold transition-opacity duration-300"
                 >
                   Voir les transactions
+                </button>
+                <button
+                  onClick={() => handleDeleteAccount(account.id, account.name)}
+                  className="w-full py-2 px-4 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg text-white font-bold transition-opacity duration-300 mt-2"
+                >
+                  Supprimer le compte
                 </button>
                 <button
                   onClick={() => handleDeleteAccount(account.id, account.name)}
@@ -123,4 +166,5 @@ const MyAccount = () => {
   );
 };
 
+export default MyAccount;
 export default MyAccount;

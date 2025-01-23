@@ -4,9 +4,11 @@ from Class.account import Account  # Import the Account class
 
 import logging
 
+from sqlalchemy import or_, and_
 from pydantic import BaseModel
 from fastapi import FastAPI, Depends, APIRouter, HTTPException
 from sqlmodel import Session, select, SQLModel, Field
+
 from fastapi_utilities import repeat_every
 
 from datetime import datetime, timedelta
@@ -223,10 +225,6 @@ def my_transactions(account_id: int, session=Depends(database.get_session), user
 
 
 
-
-
-
-from sqlalchemy import or_, and_
 
 @router.post("/transactions/{id_transaction}")
 def my_transaction(body: Account, id_transaction: int, user_info=Depends(user.get_user), session=Depends(database.get_session)):
@@ -576,6 +574,100 @@ def my_filtered_transactions(amount: float, user_info=Depends(user.get_user), se
                 "created_at": transaction.created_at,
                 "transfer" : False,
                 "revenue" : True
+            })
+
+    # Return the separated transactions
+    return {
+        "transactions": transactions
+    }
+
+
+
+
+
+
+@router.get("/all-transactions/{year}/{month}")
+def my_filtered_transactions_by_date(year: int, month: int, user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    """
+    Returns all transactions of a user (filtered by month and year).
+    """
+    if not user_info:
+        raise HTTPException(status_code=401, detail="Please login")
+
+    # Calculate the first and last day of the month
+    start_date = datetime(year, month, 1)
+    if month == 12:
+        end_date = datetime(year + 1, 1, 1) - timedelta(days=1)  # Last day of December
+    else:
+        end_date = datetime(year, month + 1, 1) - timedelta(days=1)  # Last day of the month
+
+    # Fetch all account IDs for the user
+    statement = (
+        select(Account.id)
+        .where(Account.user_id == user_info["id"])
+        .order_by(Account.created_at.desc())
+    )
+    account_ids = session.exec(statement).all()  # List of account IDs
+
+    if not account_ids:
+        return {"message": "No accounts found for the user."}
+    
+    # Flatten the list of account IDs
+    statement_account_ids = [account_id for account_id in account_ids]
+
+    # Fetch all transactions where the user's accounts are either the sender or receiver within the date range
+    statement = (
+        select(Transaction)
+        .where(
+            or_(
+                Transaction.sender.in_(statement_account_ids),
+                Transaction.receiver.in_(statement_account_ids)
+            ),
+            Transaction.created_at >= start_date,
+            Transaction.created_at <= end_date
+        )
+        .order_by(Transaction.created_at.desc())
+    )
+    all_transactions = session.exec(statement).all()
+
+    # Separate transactions into sent and received
+    transactions = []
+
+    for transaction in all_transactions:
+        # CAS TRANSFERT ENTRE LES COMPTES APPARTENANT A L'UTILISATEUR
+        if (transaction.sender in statement_account_ids) and (transaction.receiver in statement_account_ids):
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer": True,
+                "revenue": False
+            })
+
+        # If the user is the sender of the transaction
+        elif transaction.sender in statement_account_ids:
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer": False,
+                "revenue": False
+            })
+        
+        # If the user is the receiver of the transaction
+        elif transaction.receiver in statement_account_ids:
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer": False,
+                "revenue": True
             })
 
     # Return the separated transactions

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import TransactionNavigation from "../components/transactions/TransactionNavigation";
 import AccountDropdown from "../components/transactions/AccountDropdown";
 
+
 const MyAccount = () => {
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState("");
@@ -89,6 +90,8 @@ const MyAccount = () => {
 
       {/* Transaction Navigation */}
       <TransactionNavigation selectedAccount={selectedAccount} />
+
+
     </div>
   );
 };
