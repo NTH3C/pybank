@@ -1,38 +1,61 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchAccounts } from "../api/accounts/fetchAccounts";
 
-const MyAccounts = () => {
+const MyAccount = () => {
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    async function loadAccounts() {
+      try {
+        const accountsData = await fetchAccounts();
+        setAccounts(accountsData);
+      } catch (err) {
+        setError(err.message);
+      }
+    }
 
-  async function fetchAccounts() {
-    const apiKey = import.meta.env.VITE_URL_BACKEND;
+    loadAccounts();
+  }, []);
+
+  async function handleDeleteAccount(accountId, accountName) {
+    const apiKey = import.meta.env.VITE_URL_BACKEND; // Endpoint de suppression
     const token = localStorage.getItem("token");
+
     if (!token) {
       setError("Vous n'êtes pas connecté.");
       return;
     }
 
+    if (accountName == "Main_account") {
+      setError("Vous ne pouvez pas supprimer le compte principal.");
+      return;
+    }
+
     try {
-      const response = await fetch(`${apiKey}/my_accounts`, {
+      const response = await fetch( (`${apiKey}/delete_account/`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ id: accountId }), // Envoi de l'ID du compte
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.detail || "Erreur lors de la récupération des comptes"
+          errorData.detail || "Erreur lors de la suppression du compte"
         );
       }
 
-      const data = await response.json();
-      setAccounts(data.accounts || []);
+      // Mise à jour de la liste des comptes après suppression
+      setAccounts((prevAccounts) =>
+        prevAccounts.filter((account) => account.id !== accountId)
+      );
+
     } catch (err) {
       setError(err.message);
     }
@@ -46,7 +69,7 @@ const MyAccounts = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-extrabold text-center mb-8 tracking-wider bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
-          Mes Comptes 
+          Mes Comptes
         </h1>
         {error && (
           <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 p-4 rounded-lg mb-6 backdrop-blur-lg">
@@ -78,10 +101,18 @@ const MyAccounts = () => {
                   </span>
                 </p>
                 <button
-                  onClick={() => navigate(`/account/${account.id}/transactions`)}
+                  onClick={() =>
+                    navigate(`/account/${account.id}/transactions`)
+                  }
                   className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-white font-bold transition-opacity duration-300"
                 >
                   Voir les transactions
+                </button>
+                <button
+                  onClick={() => handleDeleteAccount(account.id, account.name)}
+                  className="w-full py-2 px-4 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg text-white font-bold transition-opacity duration-300 mt-2"
+                >
+                  Supprimer le compte
                 </button>
               </div>
             ))}
@@ -92,4 +123,4 @@ const MyAccounts = () => {
   );
 };
 
-export default MyAccounts;
+export default MyAccount;
