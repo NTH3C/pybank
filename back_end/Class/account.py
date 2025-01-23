@@ -39,6 +39,7 @@ class CreateAccount(BaseModel):
 
 
 
+
 #*--------- App post ----------#
 
 def create_account_for_user(user_id: int, balance: float = 100) -> Account:

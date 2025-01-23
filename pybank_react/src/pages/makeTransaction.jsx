@@ -8,21 +8,41 @@ import { fetchAccounts } from "../api/accounts/fetchAccounts";
 
 const MakeTransaction = () => {
     const [accounts, setAccounts] = useState([]);
+    const [beneficiaires, setBeneficiaires] = useState([]);
     const [error, setError] = useState(null);
     const token = localStorage.getItem("token");
+
+    const fetchAllBeneficiaires = async () => {
+        try {
+          const response = await axios.get("http://localhost:8000/beneficiaires", {
+            headers: {
+              "Content-Type": "application/json", 
+              Authorization: `Bearer ${token}`,   
+            },
+          });
+          setBeneficiaires(response.data.beneficiaires || []); 
+        } catch (error) {
+          console.error("Error fetching beneficiaries:", error.response?.data || error.message);
+          setError(error.response?.data?.detail || "Failed to fetch beneficiaries.");
+        }
+      };
+      
     
     useEffect(() => {
-        async function loadAccounts() {
+        async function loadInitialData() {
           try {
             const accountsData = await fetchAccounts();
             setAccounts(accountsData);
+      
+            await fetchAllBeneficiaires(); 
           } catch (err) {
             setError(err.message);
           }
         }
-    
-        loadAccounts();
+      
+        loadInitialData();
       }, []);
+      
 
     return (
         <div className="centered">
@@ -63,12 +83,19 @@ const MakeTransaction = () => {
                             ))}
                         </Field>
                         
-                        <label htmlFor="receiver">Receiver</label>
-                        <input
-                            id="receiver"
-                            name="receiver"
-                            onChange={formik.handleChange}
-                        />
+                        <label htmlFor="sender">Receiver</label>
+                        <Field 
+                        as="select" 
+                        name="receiver"
+                        >
+                            <option disabled value="">Select receiver</option>
+                            {beneficiaires.map((beneficiaire) => (
+                                <option value={beneficiaire.id} key={beneficiaire.id}>{beneficiaire.name}</option>
+                            ))}
+                            {accounts.map((account) => (
+                                <option value={account.id} key={account.id}>{account.name}</option>
+                            ))}
+                        </Field>
 
                         <label htmlFor="amount">Amount</label>
                         <input
