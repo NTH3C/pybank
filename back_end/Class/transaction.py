@@ -12,9 +12,6 @@ from fastapi_utilities import repeat_every
 from datetime import datetime, timedelta
 
 router = APIRouter(tags=["Transactions"])
-
-
-
     
 
 #*--------- Class ----------#
@@ -29,7 +26,6 @@ class Transaction(SQLModel, BaseModel, table=True):
     is_pending: bool = Field(index=True, default=True)
 
 #*--------- Function Post ----------#
-
 
 @router.on_event('startup')
 @repeat_every(seconds=1)
@@ -153,14 +149,25 @@ def create_transaction(body: Transaction, session=Depends(database.get_session),
 
 
 
+
+
+
+
+
+
+
+
+
 @router.get("/{account_id}/transactions/")
-def my_transactions(account_id: int, session=Depends(database.get_session)):
+def my_transactions(account_id: int, session=Depends(database.get_session), user_info=Depends(user.get_user)):
     '''
     Get all transactions made or received through current account.
     '''
-    # Ensure the body contains a valid account ID
-    if not account_id:
-        raise HTTPException(status_code=400, detail="Account ID is required")
+    if not user_info:
+        raise HTTPException(401, "Please login")
+
+    if account_id <= 0:
+        raise HTTPException(status_code=400, detail="Invalid account ID")
 
     # Fetch transactions where the account is the sender
     sender_statement = (
@@ -199,6 +206,24 @@ def my_transactions(account_id: int, session=Depends(database.get_session)):
             for transaction in receiver_transactions
         ],
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 from sqlalchemy import or_, and_
@@ -321,3 +346,183 @@ def delete_transaction(body: Transaction, user_info=Depends(user.get_user), sess
             return  {"message": "Too late loser"}
         else :
             return {"message": "not your account"}
+        
+
+
+
+
+
+
+
+
+
+
+
+@router.get("/all-transactions/")
+def my_transactions(user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    """
+    Returns all transactions of a user.
+    """
+    if not user_info:
+        raise HTTPException(status_code=401, detail="Please login")
+
+    # Fetch all account IDs for the user
+    statement = (
+        select(Account.id)
+        .where(Account.user_id == user_info["id"])
+        .order_by(Account.created_at.desc())
+    )
+    account_ids = session.exec(statement).all()  # List of account IDs
+
+    if not account_ids:
+        return {"message": "No accounts found for the user."}
+    
+    # Flatten the list of account IDs
+    statement_account_ids = [account_id for account_id in account_ids]
+
+    # Fetch all transactions where the user's accounts are either the sender or receiver TOUTES LES TRANSACTIONS DU MECS DE TOUS SES COMPTES
+    statement = (
+        select(Transaction)
+        .where(
+            or_(
+                Transaction.sender.in_(statement_account_ids),
+                Transaction.receiver.in_(statement_account_ids)
+            )
+        )
+        .order_by(Transaction.created_at.desc())
+    )
+    all_transactions = session.exec(statement).all()
+
+    # Separate transactions into sent and received
+    transactions = []
+
+    for transaction in all_transactions:
+
+        # CAS TRANSFERT ENTRE LES COMPTES APPARTENANT A L'UTILISATEUR
+        if (transaction.sender in statement_account_ids) and (transaction.receiver in statement_account_ids) :
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer" : True,
+                "revenue" : False
+            }) 
+
+        # s'il est l'envoyeur de la transaction
+        elif transaction.sender in statement_account_ids:
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer" : False,
+                "revenue" : False
+            })
+        
+        # s'il est le receveur de la transaction
+        elif transaction.receiver in statement_account_ids:
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer" : False,
+                "revenue" : True
+            })
+
+    # Return the separated transactions
+    [] 
+    return {
+        "transactions": transactions
+    }
+
+
+
+
+
+
+@router.get("/all-transactions/{amount}")
+def my_filtered_transactions(amount: float, user_info=Depends(user.get_user), session=Depends(database.get_session)):
+    """
+    Returns all transactions of a user (filtered by amount).
+    """
+    if not user_info:
+        raise HTTPException(status_code=401, detail="Please login")
+
+    # Fetch all account IDs for the user
+    statement = (
+        select(Account.id)
+        .where(Account.user_id == user_info["id"])
+        .order_by(Account.created_at.desc())
+    )
+    account_ids = session.exec(statement).all()  # List of account IDs
+
+    if not account_ids:
+        return {"message": "No accounts found for the user."}
+    
+    # Flatten the list of account IDs
+    statement_account_ids = [account_id for account_id in account_ids]
+
+    # Fetch all transactions where the user's accounts are either the sender or receiver
+    statement = (
+        select(Transaction)
+        .where(
+            or_(
+                Transaction.sender.in_(statement_account_ids),
+                Transaction.receiver.in_(statement_account_ids)
+            ),
+            Transaction.amount == amount  # Filter by amount
+        )
+        .order_by(Transaction.created_at.desc())
+    )
+    all_transactions = session.exec(statement).all()
+
+    # Separate transactions into sent and received
+    transactions = []
+
+    for transaction in all_transactions:
+
+        # CAS TRANSFERT ENTRE LES COMPTES APPARTENANT A L'UTILISATEUR
+        if (transaction.sender in statement_account_ids) and (transaction.receiver in statement_account_ids) :
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer" : True,
+                "revenue" : False
+            })
+
+        # s'il est l'envoyeur de la transaction
+        elif transaction.sender in statement_account_ids:
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer" : False,
+                "revenue" : False
+            })
+        
+        # s'il est le receveur de la transaction
+        elif transaction.receiver in statement_account_ids:
+            transactions.append({
+                "id": transaction.id,
+                "amount": transaction.amount,
+                "sender": transaction.sender,
+                "receiver": transaction.receiver,
+                "created_at": transaction.created_at,
+                "transfer" : False,
+                "revenue" : True
+            })
+
+    # Return the separated transactions
+    return {
+        "transactions": transactions
+    }

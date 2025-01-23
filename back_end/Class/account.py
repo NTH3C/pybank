@@ -52,15 +52,15 @@ def create_account(body: CreateAccount, user_info=Depends(user.get_user), sessio
         return account
     raise HTTPException(401, "Please login")
 
-@router.post("/my_account/{account_id}")
+@router.post("/my_accounts/{account_id}")
 def my_account(account_id: int, user_info=Depends(user.get_user), session=Depends(database.get_session)):
     statement = select(Account).where(Account.id == account_id, Account.user_id == user_info["id"])  # if account exists and is linked to currently logged in email user
     account = session.exec(statement).first()  # fetch first result
 
     if not account.is_deleted : 
-        return {"account id" : account.id, "account id" : account.name}
+        return {"id" : account.id, "name" : account.name, "balance" : account.balance}
     else :
-        return {"message" : "un compte supprimé ne peut plus être consulté. crasseux."}
+        return {"message" : "un compte supprimé ne peut plus être consulté."}
 
 
 @router.post("/my_accounts")
