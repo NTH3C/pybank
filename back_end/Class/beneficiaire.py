@@ -23,7 +23,7 @@ class AddBeneficiaires (BaseModel):
 #*--------- app post ----------#
 
 
-@router.post("/add_beneficaire")
+@router.post("/add_beneficiaire")
 def add_beneficiaire(
     body:AddBeneficiaires, user_info=Depends(user.get_user), session=Depends(database.get_session)) -> Beneficiaires:
 
