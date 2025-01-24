@@ -1,3 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Set the default font for the entire application */
+html {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f8f8f8;
+    letter-spacing: -0.25px;
+    font-weight: 500;
+    color: #1F2937;
+}
+
+.sidebar-background {
+    background: linear-gradient(300deg, #1a1a1a, #2a2a2a, #1c1c1c, #1e1e1e, #0d0d0d);
+    background-size: 300% 300%;
+    animation: gradient-animation 30s ease infinite;
+  }
+  
+  @keyframes gradient-animation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }

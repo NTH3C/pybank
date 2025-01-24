@@ -14,14 +14,14 @@ const SearchBar = ({ onSearch }) => {
   };
 
   return (
-    <div className="flex justify-center my-6">
+    <div className="flex my-6">
       <form onSubmit={handleSearch} className="relative w-full max-w-md">
         <input
           type="text"
           value={searchQuery}
           onChange={handleChange}
           placeholder="Rechercher..."
-          className="w-full py-3 px-6 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          className="w-full h-[2.7rem] py-3 px-6 rounded-xl bg-white text-gray-700 placeholder-gray-500 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
         />
         <button
           type="submit"

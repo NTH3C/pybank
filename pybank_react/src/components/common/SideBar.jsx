@@ -1,6 +1,6 @@
-// SideBar.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { MdDashboard, MdSwapHoriz, MdAccountCircle, MdAttachMoney } from 'react-icons/md'; // Importing Material Design icons
 
 const SideBar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,10 +29,9 @@ const SideBar = () => {
       </button>
 
       {/* Side Menu */}
-      <div className={`fixed inset-0 bg-gray-800 bg-opacity-75 z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={toggleMenu}></div>
-      <aside className={`fixed left-0 top-0 w-64 h-full bg-gray-900 text-white transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 z-50`}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h1 className="text-xl font-bold">Pybank</h1>
+      <aside className={`fixed left-0 top-0 w-64 h-full sidebar-background text-zinc-200 border-r-2 border-zinc-700 transition-transform duration-300 p-2 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+        <div className="flex items-center justify-between p-4">
+          <h1 className="text-2xl font-bold">Pybank</h1>
           <button className="md:hidden" onClick={toggleMenu}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -48,24 +47,36 @@ const SideBar = () => {
         </div>
         <nav className="mt-4">
           <ul>
-            <li className="hover:bg-gray-700">
-              <Link to="/dashboard" className="block py-2 px-4">Dashboard</Link>
+            <li>
+              <Link to="/dashboard" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdDashboard className="mr-2" /> {/* Dashboard Icon */}
+                Dashboard
+              </Link>
             </li>
-            <li className="hover:bg-gray-700">
-              <Link to="/transactions" className="block py-2 px-4">Transactions</Link>
+            <li>
+              <Link to="/transactions" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdSwapHoriz className="mr-2" /> {/* Transactions Icon */}
+                Transactions
+              </Link>
             </li>
-            <li className="hover:bg-gray-700">
-              <Link to="/myaccount" className="block py-2 px-4">Mes comptes</Link>
+            <li>
+              <Link to="/my-accounts" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdAccountCircle className="mr-2" /> {/* My Account Icon */}
+                Mes comptes
+              </Link>
             </li>
-            <li className="hover:bg-gray-700">
-              <Link to="/virements" className="block py-2 px-4">Virements</Link>
+            <li>
+              <Link to="/virements" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdAttachMoney className="mr-2" /> {/* Virements Icon */}
+                Virements
+              </Link>
             </li>
           </ul>
         </nav>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 ml-64"> {/* Add margin-left to account for the sidebar width */}
         {/* Your main content goes here */}
       </div>
     </div>
