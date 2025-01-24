@@ -12,6 +12,7 @@ const Profile = () => {
   const token = localStorage.getItem("token");
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
+  const apiKey = import.meta.env.VITE_URL_BACKEND;
 
   useEffect(() => {
     async function loadUserInfo() {
@@ -58,7 +59,7 @@ const Profile = () => {
                 }}
                 onSubmit={async (values) => {
                     try {
-                        const response = await axios.put('http://localhost:8000/change_password/',  values,
+                        const response = await axios.put(`${apiKey}/change_password/`,  values,
                         {
                             headers: {
                                 'Content-Type': 'application/json', 

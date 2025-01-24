@@ -47,16 +47,10 @@ const SideBar = () => {
         </div>
         <nav className="mt-4">
           <ul>
-            <li>
-              <Link to="/dashboard" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+          <li>
+              <Link to="/" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
                 <MdDashboard className="mr-2" /> {/* Dashboard Icon */}
                 Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link to="/transactions" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
-                <MdSwapHoriz className="mr-2" /> {/* Transactions Icon */}
-                Transactions
               </Link>
             </li>
             <li>
@@ -66,9 +60,27 @@ const SideBar = () => {
               </Link>
             </li>
             <li>
-              <Link to="/virements" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+              <Link to="/createaccount" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdDashboard className="mr-2" /> {/* Dashboard Icon */}
+                Créer un compte
+              </Link>
+            </li>
+            <li>
+              <Link to="/maketransactions" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
                 <MdAttachMoney className="mr-2" /> {/* Virements Icon */}
                 Virements
+              </Link>
+            </li>
+            <li>
+              <Link to="/transactions" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdSwapHoriz className="mr-2" /> {/* Transactions Icon */}
+                Mes transactions
+              </Link>
+            </li>
+            <li>
+              <Link to="/addbeneficiaire" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdAccountCircle className="mr-2" /> {/* My Account Icon */}
+                Mes beneficiaire
               </Link>
             </li>
           </ul>

@@ -5,11 +5,12 @@ import { useNavigate } from "react-router-dom"; // Utilisation de useNavigate po
 
 const Register = () => {
   const navigate = useNavigate(); // Hook de redirection après inscription réussie
+  const apiKey = import.meta.env.VITE_URL_BACKEND;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
-      <div className="max-w-sm mx-auto bg-opacity-90 backdrop-blur-lg rounded-xl p-6 shadow-xl">
-        <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
+    <div className="min-h-screen bg-white text-gray-900 p-6 flex items-center justify-center">
+      <div className="max-w-lg w-full bg-opacity-90 backdrop-blur-lg rounded-xl p-8 shadow-xl">
+        <h1 className="text-3xl font-extrabold text-center mb-6 text-black bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
           Inscription
         </h1>
 
@@ -20,7 +21,7 @@ const Register = () => {
           }}
           onSubmit={async (values) => {
             try {
-              const response = await axios.post("http://localhost:8000/users/", values, {
+              const response = await axios.post(`${apiKey}/users/`, values, {
                 headers: {
                   "Content-Type": "application/json",
                 },
@@ -42,7 +43,7 @@ const Register = () => {
                   id="email"
                   name="email"
                   type="email"
-                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
               </div>
@@ -54,7 +55,7 @@ const Register = () => {
                   id="password"
                   name="password"
                   type="password"
-                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <ErrorMessage name="password" component="div" className="text-red-500 text-sm mt-1" />
               </div>

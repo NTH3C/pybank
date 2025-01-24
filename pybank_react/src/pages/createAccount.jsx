@@ -4,13 +4,14 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 const CreateAccount = () => {
   const [createAccounts, setCreateAccounts] = useState([]);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   async function CreateAccounts(values, resetForm) {
     const apiKey = import.meta.env.VITE_URL_BACKEND;
     const token = localStorage.getItem('token');
 
     if (!token) {
-      setError("Vous n'êtes pas connecté.");
+      setErrorMessage("Vous n'êtes pas connecté.");
       return;
     }
 
@@ -58,7 +59,7 @@ const CreateAccount = () => {
       const data = await response.json();
       setCreateAccounts(data.createAccounts || []);
     } catch (err) {
-      err.message;
+      setErrorMessage(err.message || "Erreur inconnue");
     }
   }
 
@@ -80,12 +81,15 @@ const CreateAccount = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-center mb-8 tracking-wider bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
+    <div className="min-h-screen bg-white text-gray-900 p-6">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-extrabold text-center mb-8 text-black-600">
           Créer un compte
         </h1>
-        {successMessage && <div style={{ color: 'green' }}>{successMessage}</div>}
+        
+        {/* Affichage du message de succès ou d'erreur */}
+        {successMessage && <div className="text-green-500 text-center mb-4 font-semibold">{successMessage}</div>}
+        {/* {errorMessage && <div className="text-red-500 text-center mb-4 font-semibold">{errorMessage}</div>} */}
 
         <Formik
           initialValues={{ name: '', type: '' }}
@@ -93,25 +97,23 @@ const CreateAccount = () => {
           onSubmit={(values, { resetForm }) => CreateAccounts(values, resetForm)}
         >
           {() => (
-            <Form>
-              <div>
-                <label htmlFor="name">Nom :</label>
-                <Field name="name" type="text" />
-                <ErrorMessage name="name" component="div" style={{ color: 'red' }} />
+            <Form className="bg-white p-6 rounded-lg shadow-md border border-gray-300">
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-lg text-gray-700">Nom :</label>
+                <Field name="name" type="text" className="w-full p-3 mt-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
               </div>
-              <div>
-                <label htmlFor="type">Type de compte :</label>
-                <Field as="select" name="type">
-                  <option value="" disabled>
-                    Sélectionnez un type
-                  </option>
+              <div className="mb-4">
+                <label htmlFor="type" className="block text-lg text-gray-700">Type de compte :</label>
+                <Field as="select" name="type" className="w-full p-3 mt-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <option value="" disabled>Sélectionnez un type</option>
                   <option value="Epargne">Épargne</option>
                   <option value="Courant">Courant</option>
                 </Field>
-                <ErrorMessage name="type" component="div" style={{ color: 'red' }} />
+                <ErrorMessage name="type" component="div" className="text-red-500 text-sm mt-1" />
               </div>
               <button
-                className="py-2 px-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-white font-bold transition-opacity duration-300"
+                className="w-full py-3 px-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
                 type="submit"
               >
                 Créer
