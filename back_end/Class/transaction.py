@@ -143,12 +143,11 @@ def create_transaction(body: Transaction, session=Depends(database.get_session),
         session.commit()
 
         return {
+            "id": transaction.id,
             "message": "Transaction successfully completed.",
             "sender_account_balance": sender_account.balance,
             "receiver_account_balance": receiver_account.balance,
         }
-
-
 
 
 
