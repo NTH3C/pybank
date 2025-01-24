@@ -3,8 +3,7 @@ import { useParams } from 'react-router-dom';
 import TransactionNavigation from "../components/transactions/TransactionNavigation";
 import AccountDropdown from "../components/transactions/AccountDropdown";
 
-
-const MyAccount = () => {
+const Transactions = () => {
   const [accounts, setAccounts] = useState([]);
   const [error, setError] = useState("");
   const [selectedAccount, setSelectedAccount] = useState(0); // State for the selected account (0 = no account selected)
@@ -70,30 +69,28 @@ const MyAccount = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
-      <h1 className="text-4xl font-extrabold text-center mb-8 tracking-wider bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
-        Mon Compte
+    <div className="w-[95%] my-12">
+  <div className="">
+    <div className="flex justify-between items-center"> {/* Added `items-center` */}
+      <h1 className="font-bold text-gray-800 text-4xl mb-4">
+        Transactions
       </h1>
-
-      {/* Account Dropdown */}
-      <AccountDropdown
-        options={dropdownOptions}
-        onSelect={handleSelect}
-      />
-
-      {/* Error Handling */}
-      {error && (
-        <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 p-4 rounded-lg mb-6 backdrop-blur-lg">
-          {error}
-        </div>
-      )}
-
-      {/* Transaction Navigation */}
-      <TransactionNavigation selectedAccount={selectedAccount} />
-
-
+      <AccountDropdown options={dropdownOptions} onSelect={handleSelect} />
     </div>
+
+    {/* Error Handling */}
+    {error && (
+      <div className="mt-4 p-4 bg-red-100 border border-red-300 text-red-600 rounded-lg">
+        {error}
+      </div>
+    )}
+
+    {/* Transaction Navigation */}
+    <TransactionNavigation selectedAccount={selectedAccount} />
+  </div>
+</div>
+
   );
 };
 
-export default MyAccount;
+export default Transactions;

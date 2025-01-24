@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import SearchBar from "./SearchBar"; // Import your SearchBar component
 import PdfDropdown from "./PdfDropdown";
 
@@ -8,8 +8,6 @@ const TransactionNavigation = ({ selectedAccount }) => {
   const [allTransactions, setAllTransactions] = useState([]);
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
   const [loading, setLoading] = useState(true); // State for loading
-
-  // const [pdfContent, setPdfContent] = useState([]); // State for loading
 
   async function fetchAllTransactions(query = "") {
     const apiKey = import.meta.env.VITE_URL_BACKEND;
@@ -59,61 +57,59 @@ const TransactionNavigation = ({ selectedAccount }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-center mb-8 tracking-wider bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">
-          Toutes les transactions
-        </h1>
-        
+    <div className="">
+      <div className="">
         {/* Search Bar Component */}
-        <SearchBar onSearch={handleSearch} />
+        <div className="flex items-center justify-between space-x-4">
+  <PdfDropdown />
+  <SearchBar onSearch={handleSearch} />
+</div>
 
-        <div className="bg-gray-800 text-white p-4 rounded-lg shadow-lg mb-6">
-          <nav className="flex justify-between">
+        <div className="bg-gray-100 text-gray-800 p-2 rounded-lg shadow-lg mb-6">
+          <nav className="flex justify-start gap-x-4">
             <button
               onClick={() => handleTabChange("transactions")}
-              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "transactions" ? "bg-blue-500" : "hover:bg-gray-700"}`}
+              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "transactions" ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
             >
               Transactions
             </button>
             <button
               onClick={() => handleTabChange("recettes")}
-              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "recettes" ? "bg-blue-500" : "hover:bg-gray-700"}`}
+              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "recettes" ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
             >
               Recettes
             </button>
             <button
               onClick={() => handleTabChange("depenses")}
-              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "depenses" ? "bg-blue-500" : "hover:bg-gray-700"}`}
+              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "depenses" ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
             >
               Dépenses
             </button>
           </nav>
         </div>
-
+  
         {error && (
-          <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 p-4 rounded-lg mb-6 backdrop-blur-lg">
+          <div className="bg-red-100 border border-red-300 text-red-600 p-4 rounded-lg mb-6">
             {error}
           </div>
         )}
-
+  
         {/* Loading State */}
         {loading ? (
-          <p className="text-center text-gray-400">Chargement des transactions...</p>
+          <p className="text-left text-gray-500">Chargement des transactions...</p>
         ) : (
-          // Conditional Rendering Based on Active Tab
           <>
             {activeTab === "transactions" && (
               <div className="grid grid-cols-1 gap-8">
                 {allTransactions.length === 0 ? (
-                  <p className="text-center text-gray-400">Aucune transaction trouvée.</p>
+                  <p className="text-left text-gray-500">Aucune transaction trouvée.</p>
                 ) : (
                   allTransactions
                     .filter(tx => selectedAccount === 0 || tx.sender === selectedAccount || tx.receiver === selectedAccount)
                     .map((tx, index) => (
                       <div
                         key={index}
-                        className="transaction-item bg-white bg-opacity-10 border border-gray-700 rounded-xl p-6 hover:scale-105 transition-transform duration-300 backdrop-blur-md shadow-lg"
+                        className="transaction-item bg-white border border-gray-300 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300"
                       >
                         <p>
                           <strong>Expéditeur :</strong> {tx.sender}
@@ -122,8 +118,8 @@ const TransactionNavigation = ({ selectedAccount }) => {
                           <strong>Montant :</strong>{" "}
                           <span
                             className={`${
-                              tx.revenue ? "text-green-400" : "text-red-400"
-                            } ${tx.transfer ? "text-white" : ""}`}
+                              tx.revenue ? "text-green-500" : "text-red-500"
+                            } ${tx.transfer ? "text-gray-800" : ""}`}
                           >
                             {tx.transfer
                               ? `${tx.amount} €`
@@ -142,24 +138,24 @@ const TransactionNavigation = ({ selectedAccount }) => {
                 )}
               </div>
             )}
-
+  
             {activeTab === "recettes" && (
               <div className="grid grid-cols-1 gap-8">
                 {allTransactions.filter(tx => (selectedAccount === 0 ? tx.revenue && !tx.transfer : tx.receiver === selectedAccount && !tx.transfer)).length === 0 ? (
-                  <p className="text-center text-gray-400">Aucune recette.</p>
+                  <p className="text-left text-gray-500">Aucune recette.</p>
                 ) : (
                   allTransactions.map((tx, index) =>
                     (selectedAccount === 0 ? tx.revenue && !tx.transfer : tx.receiver === selectedAccount && !tx.transfer) && (
                       <div
                         key={index}
-                        className="transaction-item bg-white bg-opacity-10 border border-gray-700 rounded-xl p-6 hover:scale-105 transition-transform duration-300 backdrop-blur-md shadow-lg"
+                        className="transaction-item bg-white border border-gray-300 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300"
                       >
                         <p>
                           <strong>Expéditeur :</strong> {tx.sender}
                         </p>
                         <p>
                           <strong>Montant :</strong>{" "}
-                          <span className="text-green-400">+{tx.amount} €</span>
+                          <span className="text-green-500">+{tx.amount} €</span>
                         </p>
                         <p>
                           <strong>Date :</strong>{" "}
@@ -171,24 +167,24 @@ const TransactionNavigation = ({ selectedAccount }) => {
                 )}
               </div>
             )}
-
+  
             {activeTab === "depenses" && (
               <div className="grid grid-cols-1 gap-8">
                 {allTransactions.filter(tx => (selectedAccount === 0 ? !tx.revenue && !tx.transfer : tx.sender === selectedAccount && !tx.transfer)).length === 0 ? (
-                  <p className="text-center text-gray-400">Aucune dépense.</p>
+                  <p className="text-left text-gray-500">Aucune dépense.</p>
                 ) : (
                   allTransactions.map((tx, index) =>
                     (selectedAccount === 0 ? !tx.revenue && !tx.transfer : tx.sender === selectedAccount && !tx.transfer) && (
                       <div
                         key={index}
-                        className="transaction-item bg-white bg-opacity-10 border border-gray-700 rounded-xl p-6 hover:scale-105 transition-transform duration-300 backdrop-blur-md shadow-lg"
+                        className="transaction-item bg-white border border-gray-300 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300"
                       >
                         <p>
                           <strong>Expéditeur :</strong> {tx.sender}
                         </p>
                         <p>
                           <strong>Montant :</strong>{" "}
-                          <span className="text-red-400">-{tx.amount} €</span>
+                          <span className="text-red-500">-{tx.amount} €</span>
                         </p>
                         <p>
                           <strong>Date :</strong>{" "}
@@ -203,11 +199,8 @@ const TransactionNavigation = ({ selectedAccount }) => {
           </>
         )}
       </div>
-
-      <PdfDropdown />
-
     </div>
-  );
+  );  
 };
 
 export default TransactionNavigation;
