@@ -92,17 +92,17 @@ const FinancialChart = () => {
 
   return (
     <div style={{
-      width: "90%", 
-      margin: "20px auto", 
-      padding: "20px", 
-      backgroundColor: "#f9f9f9", 
-      borderRadius: "8px", 
+      width: "60%",
+      margin: "20px auto",
+      padding: "20px",
+      backgroundColor: "#f9f9f9",
+      borderRadius: "8px",
       boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)"
     }}>
       {error && <div style={{
-        color: "red", 
-        textAlign: "center", 
-        fontWeight: "bold", 
+        color: "red",
+        textAlign: "center",
+        fontWeight: "bold",
         marginBottom: "20px"
       }}>
         {error}

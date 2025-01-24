@@ -109,9 +109,9 @@ const MakeTransaction = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-6">
+    <div className="min-h-screen bg-white text-gray-900 p-6">
       <div className="max-w-4xl mx-auto bg-opacity-90 backdrop-blur-lg rounded-xl p-6 shadow-xl">
-        <h1 className="text-4xl font-extrabold text-center mb-6 text-transparent bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
+        <h1 className="text-4xl font-extrabold text-center mb-6 text-black bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
           Effectuer une Transaction
         </h1>
 
@@ -132,7 +132,7 @@ const MakeTransaction = () => {
           {(formik) => (
             <Form className="space-y-6">
               <div>
-                <label htmlFor="sender" className="block text-lg font-medium">Expéditeur</label>
+                <label htmlFor="sender" className="block text-lg font-medium text-gray-700">Expéditeur</label>
                 <Field as="select" name="sender" className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option disabled value="">Sélectionner votre compte</option>
                   {accounts.map((account) => (
@@ -144,7 +144,7 @@ const MakeTransaction = () => {
               </div>
 
               <div>
-                <label htmlFor="receiver" className="block text-lg font-medium">Bénéficiaire</label>
+                <label htmlFor="receiver" className="block text-lg font-medium text-gray-700">Bénéficiaire</label>
                 <Field as="select" name="receiver" className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option disabled value="">Sélectionner le bénéficiaire</option>
                   {beneficiaires.map((beneficiaire) => (
@@ -161,7 +161,7 @@ const MakeTransaction = () => {
               </div>
 
               <div>
-                <label htmlFor="amount" className="block text-lg font-medium">Montant</label>
+                <label htmlFor="amount" className="block text-lg font-medium text-gray-700">Montant</label>
                 <input
                   id="amount"
                   name="amount"
