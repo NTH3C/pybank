@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import axios from "axios";
 import { fetchAccounts } from "../api/accounts/fetchAccounts";
 
-const MakeTransaction = () => {
+const Prelevement = () => {
   const [accounts, setAccounts] = useState([]);
   const [beneficiaires, setBeneficiaires] = useState([]);
   const [error, setError] = useState(null);
@@ -24,7 +24,7 @@ const MakeTransaction = () => {
       setBeneficiaires(response.data.beneficiaires || []);
     } catch (error) {
       console.error("Error fetching beneficiaries:", error.response?.data || error.message);
-      setError(error.response?.data?.detail || "Failed to fetch beneficiaries.");
+      setError("Impossible de récupérer les bénéficiaires.");
     }
   };
 
@@ -36,7 +36,7 @@ const MakeTransaction = () => {
         setAccounts(accountsData);
         await fetchAllBeneficiaires();
       } catch (err) {
-        setError(err.message);
+        setError("Erreur lors du chargement des données.");
       }
     }
     loadInitialData();
@@ -45,7 +45,7 @@ const MakeTransaction = () => {
   const handleTransaction = async (values) => {
     try {
       const response = await axios.post(
-        `${apiKey}/make-transaction/`,
+        `${apiKey}/make-prelevement/`,
         values,
         {
           headers: {
@@ -56,13 +56,13 @@ const MakeTransaction = () => {
       );
 
       if (!response.data.id) {
-        throw new Error("Transaction response does not contain an ID.");
+        throw new Error("La réponse ne contient pas d'ID de transaction.");
       }
 
       setCurrentTransaction(response.data);
       setToastVisible(true);
 
-      console.log("Transaction Success:", response.data);
+      console.log("Transaction réussie :", response.data);
 
       setTimeout(() => {
         if (toastVisible) {
@@ -70,22 +70,20 @@ const MakeTransaction = () => {
         }
       }, 5000);
     } catch (error) {
-      console.error("Transaction Error:", error.response?.data || error.message);
-      setError("Failed to make the transaction.");
+      console.error("Erreur de transaction :", error.response?.data || error.message);
+      setError("Impossible d'effectuer la transaction.");
     }
   };
 
-  // Confirm transaction
   const confirmTransaction = () => {
     setToastVisible(false);
-    console.log("Transaction confirmed:", currentTransaction);
-    setCurrentTransaction(null); // Clear transaction data
+    console.log("Transaction confirmée :", currentTransaction);
+    setCurrentTransaction(null);
   };
 
-  // Cancel transaction
   const cancelTransaction = async () => {
     if (!currentTransaction || !currentTransaction.id) {
-      console.error("No valid transaction to cancel.");
+      console.error("Aucune transaction valide à annuler.");
       return;
     }
 
@@ -100,19 +98,37 @@ const MakeTransaction = () => {
           },
         }
       );
-      console.log("Transaction undone:", cancelResponse.data);
+      console.log("Transaction annulée :", cancelResponse.data);
       setToastVisible(false);
       setCurrentTransaction(null);
     } catch (error) {
-      console.error("Undo Error:", error.response?.data || error.message);
+      console.error("Erreur lors de l'annulation :", error.response?.data || error.message);
     }
+  };
+
+  // Custom validation function
+  const validate = (values) => {
+    const errors = {};
+    if (!values.sender) {
+      errors.sender = "Veuillez sélectionner un compte.";
+    }
+    if (!values.receiver) {
+      errors.receiver = "Veuillez sélectionner un bénéficiaire.";
+    }
+    if (!values.amount || values.amount <= 0) {
+      errors.amount = "Le montant doit être supérieur à 0.";
+    }
+    if (values.delay < 0) {
+      errors.delay = "Le délai doit être positif.";
+    }
+    return errors;
   };
 
   return (
     <div className="min-h-screen bg-white text-gray-900 p-6">
       <div className="max-w-4xl mx-auto bg-opacity-90 backdrop-blur-lg rounded-xl p-6 shadow-xl">
         <h1 className="text-4xl font-extrabold text-center mb-6 text-black bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
-          Effectuer une Transaction
+          Ajouter un prélèvement
         </h1>
 
         {error && (
@@ -125,49 +141,60 @@ const MakeTransaction = () => {
           initialValues={{
             sender: "",
             receiver: "",
-            amount: 0,
+            amount: "",
+            delay: "",
           }}
+          validate={validate}
           onSubmit={(values) => handleTransaction(values)}
         >
-          {(formik) => (
+          {() => (
             <Form className="space-y-6">
               <div>
                 <label htmlFor="sender" className="block text-lg font-medium text-gray-700">Expéditeur</label>
-                <Field as="select" name="sender" className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-grey-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <Field as="select" name="sender" className="w-full mt-2 p-3 rounded-lg border border-gray-600">
                   <option disabled value="">Sélectionner votre compte</option>
                   {accounts.map((account) => (
-                    <option value={account.id} key={account.id} className="bg-gray-800 text-white">
+                    <option value={account.id} key={account.id}>
                       {account.name}
                     </option>
                   ))}
                 </Field>
+                <ErrorMessage name="sender" component="div" className="text-red-500 text-sm" />
               </div>
+
               <div>
                 <label htmlFor="receiver" className="block text-lg font-medium text-gray-700">Bénéficiaire</label>
-                <Field as="select" name="receiver" className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-grey-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option disabled value="">Sélectionner le bénéficiaire</option>
+                <Field as="select" name="receiver" className="w-full mt-2 p-3 rounded-lg border border-gray-600">
+                  <option disabled value="">Sélectionner un bénéficiaire</option>
                   {beneficiaires.map((beneficiaire) => (
-                    <option value={beneficiaire.id} key={beneficiaire.id} className="bg-gray-800 text-white">
+                    <option value={beneficiaire.id} key={beneficiaire.id}>
                       {beneficiaire.name}
                     </option>
                   ))}
-                  {accounts.map((account) => (
-                    <option value={account.id} key={account.id} className="bg-gray-800 text-white">
-                      {account.name}
-                    </option>
-                  ))}
                 </Field>
+                <ErrorMessage name="receiver" component="div" className="text-red-500 text-sm" />
               </div>
 
               <div>
                 <label htmlFor="amount" className="block text-lg font-medium text-gray-700">Montant</label>
-                <input
+                <Field
+                  type="number"
                   id="amount"
                   name="amount"
-                  type="number"
-                  onChange={formik.handleChange}
-                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-600"
                 />
+                <ErrorMessage name="amount" component="div" className="text-red-500 text-sm" />
+              </div>
+
+              <div>
+                <label htmlFor="delay" className="block text-lg font-medium text-gray-700">Délai</label>
+                <Field
+                  type="number"
+                  id="delay"
+                  name="delay"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-600"
+                />
+                <ErrorMessage name="delay" component="div" className="text-red-500 text-sm" />
               </div>
 
               <button type="submit" className="w-full py-3 px-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300">
@@ -176,18 +203,9 @@ const MakeTransaction = () => {
             </Form>
           )}
         </Formik>
-
-        {toastVisible && (
-          <div className="fixed bottom-6 right-6 bg-yellow-500 bg-opacity-90 p-4 rounded-lg shadow-lg flex items-center space-x-4">
-            <p className="text-white">Transaction en cours. Annulez dans les 5 secondes !</p>
-            <button onClick={cancelTransaction} className="bg-red-500 text-white px-4 py-2 rounded-lg">
-              Annuler
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
-export default MakeTransaction;
+export default Prelevement;

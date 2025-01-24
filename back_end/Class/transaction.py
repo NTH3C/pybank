@@ -27,6 +27,16 @@ class Transaction(SQLModel, BaseModel, table=True):
     is_deleted: bool = Field(index=True, default=False)
     is_pending: bool = Field(index=True, default=True)
 
+# class prelevement(BaseModel, table=True):
+#     id: int | None = Field(default=None, primary_key=True)
+#     sender: int = Field(index=True)  # sender account id
+#     receiver: int = Field(index=True)  # receiver account id
+#     amount: float = Field(index=True)
+#     created_at: datetime = Field(default=datetime.now())  # transaction date
+#     delay: int 
+#     is_deleted: bool = Field(index=True, default=False)
+#     is_pending: bool = Field(index=True, default=True)
+
 #*--------- Function Post ----------#
 
 @router.on_event('startup')

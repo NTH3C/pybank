@@ -12,6 +12,7 @@ import MyAccounts from './pages/MyAccounts';
 import Transactions from './pages/Transactions';
 import MakeTransaction from "./pages/makeTransaction";
 import AddBeneficiaire from "./pages/addBeneficiaire";
+import Prelevement from "./pages/prelevement";
 
 import SideBar from "./components/common/SideBar";
 
@@ -35,6 +36,7 @@ export default function App() {
               <Route path="/maketransactions" element={<MakeTransaction />} />
               <Route path="/createaccount" element={<CreateAccount />} />
               <Route path="/addbeneficiaire" element={<AddBeneficiaire />} />
+              <Route path="/prelevement" element={<Prelevement />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
           </Routes>
