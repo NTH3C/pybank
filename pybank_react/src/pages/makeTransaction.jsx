@@ -109,10 +109,10 @@ const MakeTransaction = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-6">
-      <div className="max-w-4xl mx-auto bg-opacity-90 backdrop-blur-lg rounded-xl p-6 shadow-xl">
-        <h1 className="text-4xl font-extrabold text-center mb-6 text-black bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
-          Effectuer une Transaction
+    <div className="w-[95%] my-12">
+      <div className="max-w-lg w-full">
+        <h1 className="font-bold text-gray-800 text-4xl mb-4">
+          Effectuer un virement
         </h1>
 
         {error && (
@@ -132,27 +132,44 @@ const MakeTransaction = () => {
           {(formik) => (
             <Form className="space-y-6">
               <div>
-                <label htmlFor="sender" className="block text-lg font-medium text-gray-700">Expéditeur</label>
-                <Field as="select" name="sender" className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-grey-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option disabled value="">Sélectionner votre compte</option>
+                <label htmlFor="sender" className="block text-lg font-medium text-gray-700">
+                  Expéditeur
+                </label>
+                <Field
+                  as="select"
+                  name="sender"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option disabled value="">
+                    Sélectionner votre compte
+                  </option>
                   {accounts.map((account) => (
-                    <option value={account.id} key={account.id} className="bg-gray-800 text-white">
+                    <option value={account.id} key={account.id} className="bg-white text-gray-900">
                       {account.name}
                     </option>
                   ))}
                 </Field>
               </div>
+
               <div>
-                <label htmlFor="receiver" className="block text-lg font-medium text-gray-700">Bénéficiaire</label>
-                <Field as="select" name="receiver" className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-grey-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option disabled value="">Sélectionner le bénéficiaire</option>
+                <label htmlFor="receiver" className="block text-lg font-medium text-gray-700">
+                  Bénéficiaire
+                </label>
+                <Field
+                  as="select"
+                  name="receiver"
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option disabled value="">
+                    Sélectionner le bénéficiaire
+                  </option>
                   {beneficiaires.map((beneficiaire) => (
-                    <option value={beneficiaire.id} key={beneficiaire.id} className="bg-gray-800 text-white">
+                    <option value={beneficiaire.id} key={beneficiaire.id} className="bg-white text-gray-900">
                       {beneficiaire.name}
                     </option>
                   ))}
                   {accounts.map((account) => (
-                    <option value={account.id} key={account.id} className="bg-gray-800 text-white">
+                    <option value={account.id} key={account.id} className="bg-white text-gray-900">
                       {account.name}
                     </option>
                   ))}
@@ -160,22 +177,30 @@ const MakeTransaction = () => {
               </div>
 
               <div>
-                <label htmlFor="amount" className="block text-lg font-medium text-gray-700">Montant</label>
+                <label htmlFor="amount" className="block text-lg font-medium text-gray-700">
+                  Montant
+                </label>
                 <input
                   id="amount"
                   name="amount"
                   type="number"
-                  onChange={formik.handleChange}
-                  className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0" // Prevents negative values at the HTML level
+                  onChange={(e) => {
+                    const value = Math.max(0, parseInt(e.target.value, 10) || 0); // Ensures non-negative values
+                    formik.setFieldValue("amount", value);
+                  }}
+                  value={formik.values.amount}
+                  className="w-full mt-2 p-3 rounded-lg border border-gray-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <button type="submit" className="w-full py-3 px-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300">
-                Effectuer la transaction
+              <button type="submit" className="p-3 rounded-lg transition-all duration-300 bg-blue-500 text-white hover:bg-blue-600">
+                Envoyer
               </button>
             </Form>
           )}
         </Formik>
+
 
         {toastVisible && (
           <div className="fixed bottom-6 right-6 bg-yellow-500 bg-opacity-90 p-4 rounded-lg shadow-lg flex items-center space-x-4">

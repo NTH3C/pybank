@@ -13,7 +13,7 @@ const PdfDropdown = () => {
   const currentMonth = currentDate.getMonth();
   const currentYear = currentDate.getFullYear();
 
-  const [selectedMonth, setSelectedMonth] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
   async function fetchPdfTransactions(month, year) {
@@ -87,7 +87,7 @@ const PdfDropdown = () => {
     <div className="flex">
       <div className="relative">
         {/* Combined Dropdown Menu */}
-        <div className="flex items-center bg-gray-100 border border-gray-300 rounded-lg">
+        <div className="flex items-center bg-gray-100 border border-gray-300 rounded-l-lg">
           {/* Month Dropdown */}
           <div className="relative inline-block text-left">
             <button
@@ -129,7 +129,7 @@ const PdfDropdown = () => {
           {/* Year Dropdown */}
           <div className="relative inline-block text-left">
             <button
-              className="flex items-center justify-between px-3 py-1.5 w-auto rounded-r-lg text-gray-700 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-300"
+              className="flex items-center justify-between px-3 py-1.5 w-auto text-gray-700 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-300"
               onClick={toggleYearDropdown}
             >
               {selectedYear}

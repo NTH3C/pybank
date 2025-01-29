@@ -59,148 +59,140 @@ const TransactionNavigation = ({ selectedAccount }) => {
   return (
     <div className="">
       <div className="">
-        {/* Search Bar Component */}
+        {/* Search Bar and PDF Dropdown */}
         <div className="flex items-center justify-between space-x-4">
-  <PdfDropdown />
-  <SearchBar onSearch={handleSearch} />
-</div>
+          <PdfDropdown />
+          <SearchBar onSearch={handleSearch} />
+        </div>
 
-        <div className="bg-gray-100 text-gray-800 p-2 rounded-lg shadow-lg mb-6">
+        {/* Navigation Tabs */}
+        <div className="border bg-gray-100 text-gray-800 p-2 rounded-lg shadow-lg mb-6">
           <nav className="flex justify-start gap-x-4">
-            <button
-              onClick={() => handleTabChange("transactions")}
-              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "transactions" ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
-            >
-              Transactions
-            </button>
-            <button
-              onClick={() => handleTabChange("recettes")}
-              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "recettes" ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
-            >
-              Recettes
-            </button>
-            <button
-              onClick={() => handleTabChange("depenses")}
-              className={`p-3 rounded-lg transition-all duration-300 ${activeTab === "depenses" ? "bg-blue-500 text-white" : "hover:bg-gray-200"}`}
-            >
-              Dépenses
-            </button>
+            {["transactions", "recettes", "depenses"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => handleTabChange(tab)}
+                className={`p-3 rounded-lg transition-all duration-300 ${
+                  activeTab === tab
+                    ? "bg-blue-500 text-white"
+                    : "hover:bg-gray-200"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
           </nav>
         </div>
-  
+
+        {/* Error Message */}
         {error && (
           <div className="bg-red-100 border border-red-300 text-red-600 p-4 rounded-lg mb-6">
             {error}
           </div>
         )}
-  
+
         {/* Loading State */}
         {loading ? (
           <p className="text-left text-gray-500">Chargement des transactions...</p>
         ) : (
           <>
-            {activeTab === "transactions" && (
-              <div className="grid grid-cols-1 gap-8">
-                {allTransactions.length === 0 ? (
-                  <p className="text-left text-gray-500">Aucune transaction trouvée.</p>
-                ) : (
-                  allTransactions
-                    .filter(tx => selectedAccount === 0 || tx.sender === selectedAccount || tx.receiver === selectedAccount)
-                    .map((tx, index) => (
-                      <div
-                        key={index}
-                        className="transaction-item bg-white border border-gray-300 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300"
-                      >
-                        <p>
-                          <strong>Expéditeur :</strong> {tx.sender}
-                        </p>
-                        <p>
-                          <strong>Montant :</strong>{" "}
-                          <span
-                            className={`${
-                              tx.revenue ? "text-green-500" : "text-red-500"
-                            } ${tx.transfer ? "text-gray-800" : ""}`}
+            {["transactions", "recettes", "depenses"].map((tab) => (
+              activeTab === tab && (
+                <div className="grid grid-cols-1 gap-8" key={tab}>
+                  {allTransactions.filter((tx) => {
+                    if (tab === "transactions") {
+                      return selectedAccount === 0 || tx.sender === selectedAccount || tx.receiver === selectedAccount;
+                    } else if (tab === "recettes") {
+                      return selectedAccount === 0 ? tx.revenue && !tx.transfer : tx.receiver === selectedAccount && !tx.transfer;
+                    } else if (tab === "depenses") {
+                      return selectedAccount === 0 ? !tx.revenue && !tx.transfer : tx.sender === selectedAccount && !tx.transfer;
+                    }
+                    return false;
+                  }).length === 0 ? (
+                    <p className="text-left text-gray-500">
+                      {`Aucune ${tab === "transactions" ? "transaction" : tab}.`}
+                    </p>
+                  ) : (
+                    Object.entries(
+                      allTransactions
+                        .filter((tx) => {
+                          if (tab === "transactions") {
+                            return selectedAccount === 0 || tx.sender === selectedAccount || tx.receiver === selectedAccount;
+                          } else if (tab === "recettes") {
+                            return selectedAccount === 0 ? tx.revenue && !tx.transfer : tx.receiver === selectedAccount && !tx.transfer;
+                          } else if (tab === "depenses") {
+                            return selectedAccount === 0 ? !tx.revenue && !tx.transfer : tx.sender === selectedAccount && !tx.transfer;
+                          }
+                          return false;
+                        })
+                        .reduce((acc, tx) => {
+                          const month = new Date(tx.created_at).toLocaleString("default", {
+                            month: "long",
+                            year: "numeric",
+                          });
+                          acc[month] = acc[month] || [];
+                          acc[month].push(tx);
+                          return acc;
+                        }, {})
+                    ).map(([month, transactions]) => (
+                      <div key={month}>
+                        <h3 className="text-lg font-semibold text-gray-600 mb-4">{month}</h3>
+                        {transactions.map((tx, index) => (
+                          <div
+                            key={index}
+                            className="transaction-item bg-white border border-gray-300 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300 mb-4"
                           >
-                            {tx.transfer
-                              ? `${tx.amount} €`
-                              : tx.revenue
-                              ? `+${tx.amount} €`
-                              : `-${tx.amount} €`}
-                          </span>
-                        </p>
-                        <p>
-                          <strong>Date :</strong>{" "}
-                          {new Date(tx.created_at).toLocaleString()}
-                        </p>
-                        <p>{tx.transfer ? <span>&#8646;</span> : null}</p>
+                            <p>
+                              <strong>Expéditeur :</strong> {tx.sender}
+                            </p>
+                            <p>
+                              <strong>Montant :</strong>{" "}
+                              <span
+                                className={`${
+                                  tab === "recettes"
+                                    ? "text-green-500"
+                                    : tab === "depenses"
+                                    ? "text-red-500"
+                                    : tx.transfer
+                                    ? "text-gray-800"
+                                    : tx.revenue
+                                    ? "text-green-500"
+                                    : "text-red-500"
+                                }`}
+                              >
+                                {tab === "recettes"
+                                  ? `+${tx.amount} €`
+                                  : tab === "depenses"
+                                  ? `-${tx.amount} €`
+                                  : tx.transfer
+                                  ? `${tx.amount} €`
+                                  : tx.revenue
+                                  ? `+${tx.amount} €`
+                                  : `-${tx.amount} €`}
+                              </span>
+                            </p>
+                            <p>
+                              <strong>Date :</strong>{" "}
+                              {new Date(tx.created_at).toLocaleString()}
+                            </p>
+                            {tx.transfer && (
+                              <small className="text-gray-600 text-sm">
+                                &#8646; transfert entre vos comptes
+                              </small>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ))
-                )}
-              </div>
-            )}
-  
-            {activeTab === "recettes" && (
-              <div className="grid grid-cols-1 gap-8">
-                {allTransactions.filter(tx => (selectedAccount === 0 ? tx.revenue && !tx.transfer : tx.receiver === selectedAccount && !tx.transfer)).length === 0 ? (
-                  <p className="text-left text-gray-500">Aucune recette.</p>
-                ) : (
-                  allTransactions.map((tx, index) =>
-                    (selectedAccount === 0 ? tx.revenue && !tx.transfer : tx.receiver === selectedAccount && !tx.transfer) && (
-                      <div
-                        key={index}
-                        className="transaction-item bg-white border border-gray-300 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300"
-                      >
-                        <p>
-                          <strong>Expéditeur :</strong> {tx.sender}
-                        </p>
-                        <p>
-                          <strong>Montant :</strong>{" "}
-                          <span className="text-green-500">+{tx.amount} €</span>
-                        </p>
-                        <p>
-                          <strong>Date :</strong>{" "}
-                          {new Date(tx.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    )
-                  )
-                )}
-              </div>
-            )}
-  
-            {activeTab === "depenses" && (
-              <div className="grid grid-cols-1 gap-8">
-                {allTransactions.filter(tx => (selectedAccount === 0 ? !tx.revenue && !tx.transfer : tx.sender === selectedAccount && !tx.transfer)).length === 0 ? (
-                  <p className="text-left text-gray-500">Aucune dépense.</p>
-                ) : (
-                  allTransactions.map((tx, index) =>
-                    (selectedAccount === 0 ? !tx.revenue && !tx.transfer : tx.sender === selectedAccount && !tx.transfer) && (
-                      <div
-                        key={index}
-                        className="transaction-item bg-white border border-gray-300 rounded-xl p-6 hover:shadow-lg transition-shadow duration-300"
-                      >
-                        <p>
-                          <strong>Expéditeur :</strong> {tx.sender}
-                        </p>
-                        <p>
-                          <strong>Montant :</strong>{" "}
-                          <span className="text-red-500">-{tx.amount} €</span>
-                        </p>
-                        <p>
-                          <strong>Date :</strong>{" "}
-                          {new Date(tx.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    )
-                  )
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )
+            ))}
           </>
         )}
       </div>
     </div>
-  );  
+  );
 };
 
 export default TransactionNavigation;

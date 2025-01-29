@@ -5,7 +5,7 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token"); // Check if the user is authenticated
   const location = useLocation(); // Get the current route
 
-  if (!token) {
+  if (!token || token == "Undefined" || token == "undefined") {
     // If no token, redirect to login with the attempted location
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

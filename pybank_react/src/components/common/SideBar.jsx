@@ -31,7 +31,7 @@ const SideBar = () => {
       {/* Side Menu */}
       <aside className={`fixed left-0 top-0 w-64 h-full sidebar-background text-zinc-200 border-r-2 border-zinc-700 transition-transform duration-300 p-2 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
         <div className="flex items-center justify-between p-4">
-          <h1 className="text-2xl font-bold">Pybank</h1>
+          <h1 className="text-2xl font-bold">PyBank.</h1>
           <button className="md:hidden" onClick={toggleMenu}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -60,27 +60,27 @@ const SideBar = () => {
               </Link>
             </li>
             <li>
-              <Link to="/createaccount" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
-                <MdDashboard className="mr-2" /> {/* Dashboard Icon */}
-                Créer un compte
-              </Link>
-            </li>
-            <li>
-              <Link to="/maketransactions" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
-                <MdAttachMoney className="mr-2" /> {/* Virements Icon */}
-                Virements
-              </Link>
-            </li>
-            <li>
               <Link to="/transactions" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
                 <MdSwapHoriz className="mr-2" /> {/* Transactions Icon */}
                 Mes transactions
               </Link>
             </li>
             <li>
+              <Link to="/createaccount" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdDashboard className="mr-2" /> {/* Dashboard Icon */}
+                Créer un compte
+              </Link>
+            </li>
+            <li>
               <Link to="/addbeneficiaire" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
                 <MdAccountCircle className="mr-2" /> {/* My Account Icon */}
-                Mes beneficiaire
+                Mes bénéficiaires
+              </Link>
+            </li>
+            <li>
+              <Link to="/maketransactions" className="flex items-center py-2 px-4 transition-colors duration-300 hover:bg-zinc-800 rounded">
+                <MdAttachMoney className="mr-2" /> {/* Virements Icon */}
+                Virements
               </Link>
             </li>
           </ul>

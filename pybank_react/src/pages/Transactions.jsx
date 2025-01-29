@@ -72,7 +72,7 @@ const Transactions = () => {
     <div className="w-[95%] my-12">
   <div className="">
     <div className="flex justify-between items-center"> {/* Added `items-center` */}
-      <h1 className="font-bold text-gray-800 text-4xl mb-4">
+      <h1 className="font-bold text-gray-800 text-4xl mb-6">
         Transactions
       </h1>
       <AccountDropdown options={dropdownOptions} onSelect={handleSelect} />

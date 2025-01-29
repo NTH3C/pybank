@@ -1,12 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import Linechart from '../components/chart/lineChart';
 
 function Acceuil() {
-    const navigate = useNavigate();
     return (
-        <div className="text-center">
-            <h1 className="text-4xl font-bold mb-6">Bienvenue sur Pybank</h1>
+        <div className="w-[95%] my-12">
+            <h1 className="font-bold text-gray-800 text-4xl mb-4">Dashboard</h1>
             <Linechart />
         </div>
     );

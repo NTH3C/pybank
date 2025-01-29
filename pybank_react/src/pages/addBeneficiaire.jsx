@@ -6,10 +6,10 @@ const AddBeneficiaire = () => {
   const token = localStorage.getItem("token");
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-6 flex items-center justify-center">
-      <div className="max-w-lg w-full bg-opacity-90 backdrop-blur-lg rounded-xl p-8 shadow-xl">
-        <h1 className="text-3xl font-extrabold text-center mb-6 text-black bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text">
-          Ajouter un Bénéficiaire
+    <div className="w-[95%] my-12">
+      <div className="max-w-lg w-full">
+        <h1 className="font-bold text-gray-800 text-4xl mb-4">
+          Ajouter un bénéficiaire
         </h1>
 
         <Formik
@@ -18,7 +18,7 @@ const AddBeneficiaire = () => {
             account_id: 0,
           }}
           onSubmit={async (values) => {
-            const apiKey = import.meta.env.VITE_URL_BACKEND; // Endpoint de suppression
+            const apiKey = import.meta.env.VITE_URL_BACKEND;
 
             try {
               const response = await axios.post(
@@ -45,7 +45,7 @@ const AddBeneficiaire = () => {
                   htmlFor="name"
                   className="block text-lg font-medium text-gray-700"
                 >
-                  Nom du Bénéficiaire
+                  Nom du bénéficiaire
                 </label>
                 <input
                   id="name"
@@ -68,7 +68,11 @@ const AddBeneficiaire = () => {
                   id="account_id"
                   name="account_id"
                   type="number"
-                  onChange={formik.handleChange}
+                  min="0" // Prevents negative values at the HTML level
+                  onChange={(e) => {
+                    const value = Math.max(0, parseInt(e.target.value, 10) || 0); // Ensures non-negative values
+                    formik.setFieldValue("account_id", value);
+                  }}
                   value={formik.values.account_id}
                   className="w-full mt-2 p-3 rounded-lg border border-gray-600 bg-transparent text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -76,10 +80,11 @@ const AddBeneficiaire = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
+                className="p-3 rounded-lg transition-all duration-300 bg-blue-500 text-white hover:bg-blue-600"
               >
-                Ajouter le Bénéficiaire
+                Ajouter
               </button>
+
             </Form>
           )}
         </Formik>
